@@ -10,13 +10,43 @@ from reportlab.lib.units import cm
 from reportlab.lib import colors
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-    HRFlowable, KeepTogether, PageBreak,
+    HRFlowable, KeepTogether, PageBreak, Image,
 )
 from reportlab.platypus.tableofcontents import TableOfContents
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-import os, datetime
+import os, datetime, io
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+
+def eq_image(latex_str, fontsize=11, color="#111111"):
+    """Render a LaTeX math string via matplotlib mathtext and return a ReportLab Image."""
+    fig, ax = plt.subplots(figsize=(8, 0.6))
+    ax.axis("off")
+    ax.text(
+        0.5, 0.5, f"${latex_str}$",
+        ha="center", va="center",
+        fontsize=fontsize,
+        color=color,
+        transform=ax.transAxes,
+    )
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight",
+                pad_inches=0.05, dpi=180, transparent=True)
+    plt.close(fig)
+    buf.seek(0)
+
+    img = Image(buf)
+    # Scale to fit within text block (max width ~ 14 cm)
+    max_w = 14 * cm
+    scale = min(1.0, max_w / img.imageWidth)
+    img.drawWidth  = img.imageWidth  * scale
+    img.drawHeight = img.imageHeight * scale
+    img.hAlign = "LEFT"
+    return img
 
 # ─────────────────────────────────────────────────────────────────────────────
 # OUTPUT PATH
@@ -335,17 +365,15 @@ def build_story(S):
         p("We decompose the total effect following the Baron &amp; Kenny (1986) sequential "
           "regression approach, estimated via OLS with heteroskedasticity-robust standard "
           "errors (HC3). Three equations:"),
-        Paragraph("Step 1 (total effect):  Gini_{it} = α + c·T_{it} + γX_{it} + ε_{it}", Eq),
-        Paragraph("Step 2 (T → M):         M_{it} = α + a·T_{it} + γX_{it} + ε_{it}", Eq),
-        Paragraph("Step 3 (NDE, M → Y):    Gini_{it} = α + c′·T_{it} + b·M_{it} + γX_{it} + ε_{it}", Eq),
+        eq_image(r"\text{Step 1 (total):}\quad \mathrm{Gini}_{it} = \alpha + c\,T_{it} + \gamma X_{it} + \varepsilon_{it}"),
+        eq_image(r"\text{Step 2 (T}\to\text{M):}\quad M_{it} = \alpha + a\,T_{it} + \gamma X_{it} + \varepsilon_{it}"),
+        eq_image(r"\text{Step 3 (NDE):}\quad \mathrm{Gini}_{it} = \alpha + c'\,T_{it} + b\,M_{it} + \gamma X_{it} + \varepsilon_{it}"),
+        sp(2),
         p("Controls X include log GDP per capita, lagged Gini, and region fixed effects. "
           "Bootstrap CIs for the indirect effect (NIE = a·b) use 5,000 resamples."),
         ssec("5.2  Distributed-lag impulse response"),
         p("To allow for multi-year accumulation we estimate:"),
-        Paragraph(
-            "Gini_{it} = Σ_{k=0}^{3} β_k · log(emendas)_{i,t-k} + γX_{it} + δ_i + λ_t + ε_{it}",
-            Eq
-        ),
+        eq_image(r"\mathrm{Gini}_{it} = \sum_{k=0}^{3} \beta_k \cdot \log(\mathrm{emendas})_{i,t-k} + \gamma X_{it} + \delta_i + \lambda_t + \varepsilon_{it}"),
         p("with state (δ_i) and year (λ_t) fixed effects. N = 189 after creating lags. "
           "The cumulative impulse-response function (IRF) is Σ β_k."),
         ssec("5.3  Difference-in-Differences (EC 86/2015)"),
@@ -361,7 +389,7 @@ def build_story(S):
           "at the cutoff."),
         ssec("5.5  Double Machine Learning"),
         p("Following Chernozhukov et al. (2018), we estimate the partially linear model:"),
-        Paragraph("Gini_{it} = θ · T_{it} + g(X_{it}) + ε_{it}", Eq),
+        eq_image(r"\mathrm{Gini}_{it} = \theta \cdot T_{it} + g(X_{it}) + \varepsilon_{it}"),
         p("via 5-fold cross-fitting with LassoCV to partial out the confounders g(X). "
           "The residual-on-residual OLS estimator θ̂ is asymptotically normal and "
           "consistent under cross-fitted nuisance estimation. N = 243."),
