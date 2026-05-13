@@ -135,11 +135,13 @@ section { padding: 4rem 0; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 2rem;
+  padding: 2rem 1rem;
   overflow-x: auto;
   text-align: center;
+  min-height: 300px;
 }
-.mermaid { display: inline-block; }
+.mermaid { display: block; width: 100%; }
+.mermaid svg { width: 100% !important; max-width: none !important; height: auto; min-height: 260px; }
 
 /* CHART WRAPPER */
 .chart-wrap {
@@ -1599,6 +1601,7 @@ new Chart(document.getElementById('chartSaudeGini'), {
 mermaid.initialize({
   startOnLoad: true,
   theme: 'dark',
+  flowchart: { useMaxWidth: true, htmlLabels: true, nodeSpacing: 80, rankSpacing: 120 },
   themeVariables: {
     background: '#1a1d2e',
     primaryColor: '#2d1f5e',
