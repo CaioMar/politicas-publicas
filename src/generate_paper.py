@@ -16,10 +16,58 @@ from reportlab.platypus.tableofcontents import TableOfContents
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-import os, datetime, io
+import os, datetime, io, sys, warnings
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import pandas as pd
+
+# Add src/ to path so analysis modules can be imported regardless of cwd
+_SRC_DIR = os.path.dirname(__file__)
+if _SRC_DIR not in sys.path:
+    sys.path.insert(0, _SRC_DIR)
+if os.path.dirname(_SRC_DIR) not in sys.path:
+    sys.path.insert(0, os.path.dirname(_SRC_DIR))
+
+# Load panel and run conditional IV once at module level
+_PANEL_PATH = os.path.join(_SRC_DIR, "..", "data", "processed", "panel.parquet")
+_civ_results = {}
+if os.path.exists(_PANEL_PATH):
+    try:
+        from analysis.iv import run_conditional_iv
+        _df_panel = pd.read_parquet(_PANEL_PATH)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            _civ_results = run_conditional_iv(_df_panel)
+    except Exception as _e:
+        print(f"[generate_paper] Warning: could not run conditional IV: {_e}")
+
+
+def _fmt_civ(key, field, fmt="{:.4f}", fallback="—"):
+    """Extract a formatted value from _civ_results, or return fallback."""
+    r = _civ_results.get(key)
+    if r is None:
+        return fallback
+    val = r.get(field)
+    if val is None:
+        return fallback
+    try:
+        return fmt.format(float(val))
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _pstar(pval_str):
+    """Append significance stars to a p-value string."""
+    try:
+        p = float(pval_str)
+        if p < 0.001:  return pval_str + " ***"
+        if p < 0.01:   return pval_str + " **"
+        if p < 0.05:   return pval_str + " *"
+        if p < 0.10:   return pval_str + " ·"
+        return pval_str
+    except (TypeError, ValueError):
+        return pval_str
 
 # Register Unicode-capable fonts (DejaVu Sans covers Greek, math, and all
 # characters used in this paper that Helvetica's WinAnsiEncoding cannot render).
@@ -589,13 +637,24 @@ def build_story(S):
           "was contaminated by the historical confound."),
     ]
 
+    # ── build Table 5 rows from run_conditional_iv() results ─────────────────
+    def _row5(label, key):
+        return [
+            label,
+            _fmt_civ(key, "fs_fstat", "{:.1f}"),
+            _fmt_civ(key, "rf_coef",  "{:.5f}"),
+            _pstar(_fmt_civ(key, "rf_pval", "{:.3f}")),
+            _fmt_civ(key, "iv_wald",  "{:.4f}"),
+            _fmt_civ(key, "n",        "{:.0f}"),
+        ]
+
     tbl5_data = [
         ["Specification", "FS F-stat", "RF coef.", "RF p-val.", "Wald IV", "N"],
-        ["Baseline (no hist. control)",              "—",  "—",     "—",    "—",       "243"],
-        ["+  Gini 1991 (ADH / Censo Demogr\u00e1fico)",  "—",  "—",     "—",    "—",       "243"],
-        ["+  log PIB per capita 1991",                "—",  "—",     "—",    "—",       "243"],
-        ["+  Gini baseline (\u22482012)",               "—",  "—",     "—",    "—",       "243"],
-        ["+  Gini 1991 + log PIB 1991 (joint)",       "—",  "—",     "—",    "—",       "243"],
+        _row5("Baseline (no hist. control)",             "baseline"),
+        _row5("+  Gini 1991 (ADH / Censo Demográfico)",  "cond_gini91"),
+        _row5("+  log PIB per capita 1991",               "cond_pib91"),
+        _row5("+  Gini baseline (≈2012)",                 "cond_gini0"),
+        _row5("+  Gini 1991 + log PIB 1991 (joint)",      "cond_full"),
     ]
     story += [
         sp(4),
@@ -606,10 +665,9 @@ def build_story(S):
             "Table 5. IV conditional sensitivity: distorcao_cadeiras → Gini with "
             "progressive historical controls. Gini 1991 from Atlas do Desenvolvimento Humano "
             "(ADH_GINI, IPEADATA), Censo Demográfico 1991. "
-            "Cells marked '—' are populated at runtime "
-            "from run_conditional_iv() in src/analysis/iv.py. "
-            "Stable coefficients across rows → exclusion restriction is robust. "
-            "Large shifts → historical confounding is material.",
+            "FS\u00a0= first-stage F-stat; RF\u00a0coef.\u00a0= reduced-form coefficient on instrument; "
+            "Wald\u00a0IV\u00a0= RF/FS ratio estimate. "
+            "Stable RF coef. across rows → exclusion restriction is robust to historical confounding.",
             S["caption"]
         ),
     ]
