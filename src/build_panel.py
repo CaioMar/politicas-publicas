@@ -16,9 +16,20 @@ Colunas do painel final:
   gini                     : coeficiente de Gini (OUTCOME)
   gini_lag1                : Gini ano anterior (controle de estado inicial)
   pib_per_capita           : PIB per capita estadual (confundidor)
+  log_pib_per_cap          : log(pib_per_capita)
+  log_emendas_per_cap      : log(emendas_per_cap)
   regiao                   : Norte | Nordeste | Centro-Oeste | Sudeste | Sul
   pos_ec86                 : 1 se ano >= 2015 (EC 86 emendas impositivas saúde)
   pos_ec100                : 1 se ano >= 2019 (EC 100/109 emendas impositivas geral)
+
+  ── Proxies históricas (threat ao IV) ─────────────────────────────────────────
+  pib_pc_1991              : PIB per capita estadual em 1991 (R$ 2010, IPEADATA PIBPCE)
+  log_pib_pc_1991          : log(pib_pc_1991)
+  gini_baseline            : primeiro Gini disponível por estado no painel PNAD (≈2012)
+
+  Nota: Estas colunas são usadas para testar se o instrumento (distorcao_cadeiras)
+  permanece válido após controlar pela situação pré-constitucional.
+  Ver seção 4.2 do paper e src/analysis/iv.py::run_conditional_iv().
 """
 
 from __future__ import annotations
@@ -110,6 +121,24 @@ def build_panel(
 
     # Região
     df["regiao"] = df["uf"].map(REGIAO_MAP)
+
+    # ── Proxies históricas (controle para ameaça ao IV) ─────────────────────
+    # Causalidade potencial: Desig_1988 → Cadeiras E Desig_1988 → Gini_atual
+    # Se essa path existir, o instrumento não satisfaz a exclusion restriction.
+    # Controlando para o estado pré-constitucional, o IV torna-se válido
+    # condicionalmente ("conditional IV"). Ver seção 4.2 do paper.
+    try:
+        from src.collect.ibge import get_historical_proxy
+        hist = get_historical_proxy(cache=True)
+        df = df.merge(hist[["uf", "pib_pc_1991", "log_pib_pc_1991", "gini_baseline"]],
+                      on="uf", how="left")
+    except Exception as _e:
+        import warnings
+        warnings.warn(f"Proxy histórica não disponível ({_e}). "
+                      "As colunas pib_pc_1991/gini_baseline estarão ausentes do painel.")
+        df["pib_pc_1991"] = np.nan
+        df["log_pib_pc_1991"] = np.nan
+        df["gini_baseline"] = np.nan
 
     # Instrumentos (IV)
     # Z1: dummies de cap (binário: no teto máximo ou mínimo constitucional)

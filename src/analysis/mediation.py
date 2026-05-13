@@ -81,6 +81,7 @@ def baron_kenny(
     outcome: str = "gini",
     controls: list[str] | None = None,
     log_mediator: bool = True,
+    add_historical_controls: bool = True,
 ) -> MediationResult:
     """
     Decomposição Baron & Kenny via OLS.
@@ -89,9 +90,36 @@ def baron_kenny(
     Passo 2: M ~ T + X                   → coef β₁ (T → M)
     Passo 3: Y ~ T + M + X              → coef α₂ (NDE) e β₂ (M → Y)
     NIE = β₁ × β₂ (produto dos coeficientes)
+
+    Parâmetros
+    ----------
+    add_historical_controls : bool (default True)
+        Se True, adiciona automaticamente às variáveis de controle as
+        proxies históricas disponíveis no painel (log_pib_pc_1991,
+        gini_baseline) para bloquear o backdoor da persistência histórica
+        de desigualdade. Isso torna a mediação válida condicionalmente
+        mesmo na presença da ameaça identificada em seção 4.2.
     """
     if controls is None:
         controls = ["log_pib_per_cap", "gini_lag1", "C(regiao)"]
+
+    # Adicionar proxies históricas se disponíveis e solicitadas
+    if add_historical_controls:
+        extra = []
+        if "log_pib_pc_1991" in df.columns and df["log_pib_pc_1991"].notna().any():
+            extra.append("log_pib_pc_1991")
+        if "gini_baseline" in df.columns and df["gini_baseline"].notna().any():
+            extra.append("gini_baseline")
+        if extra:
+            controls = controls + extra
+            print(f"[Mediação] Controles históricos adicionados: {extra}")
+        else:
+            import warnings
+            warnings.warn(
+                "Proxies históricas (log_pib_pc_1991, gini_baseline) não encontradas "
+                "no painel. A ameaça do confundidor histórico não está sendo controlada. "
+                "Execute build_panel.py para gerar o painel completo."
+            )
 
     # Normalizar variáveis para coeficientes comparáveis
     df = df.copy().dropna(subset=[outcome, treatment, mediator] +

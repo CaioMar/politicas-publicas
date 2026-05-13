@@ -10,6 +10,7 @@ API IPEADATA: http://www.ipeadata.gov.br/api/odata4/
 
 from __future__ import annotations
 
+import numpy as np
 from pathlib import Path
 
 import pandas as pd
@@ -96,6 +97,68 @@ def get_pib_per_capita(anos: list[int] | None = None, cache: bool = True) -> pd.
         df = df[df["ano"].isin(anos)]
 
     return df
+
+
+def get_historical_proxy(cache: bool = True) -> pd.DataFrame:
+    """
+    Retorna proxy de desenvolvimento histórico (pré-Constituição) por UF.
+
+    Estratégia:
+    -----------
+    Não existe série de Gini estadual contínua antes de 2001 no IPEADATA.
+    Usamos dois indicadores como proxy da situação histórica de cada estado
+    no momento em que as cadeiras foram fixadas (1988):
+
+      pib_pc_1991   - PIB per capita estadual de 1991 (Contas Regionais,
+                      IPEADATA série PIBPCE, preços de 2010 R$).
+                      Alta correlação com desenvolvimento/desigualdade inicial.
+
+      gini_baseline - Primeiro Gini disponível por estado no painel PNAD
+                      Contínua (normalmente 2012 ou 2013). Servem como
+                      estado inicial, pois a correlação serial do Gini
+                      estadual brasileiro é > 0.95 (Lustig et al. 2013).
+
+    Limitação explicitamente documentada na Seção 4.2 do paper:
+    a Gini exata de 1988 não está disponível no IPEADATA/PNADCA.
+    O PIB 1991 é proxy plausível mas imperfeito para a desigualdade no
+    momento da promulgação constitucional.
+
+    Retorna
+    -------
+    pd.DataFrame com colunas: [uf, pib_pc_1991, gini_baseline]
+    """
+    cache_path = RAW_DIR / "ibge_hist_proxy.parquet"
+    if cache and cache_path.exists():
+        return pd.read_parquet(cache_path)
+
+    # ── PIB per capita 1991 ───────────────────────────────────────────────────
+    pib_all = _fetch_ipeadata_states("PIBPCE", "pib_per_capita")
+    pib_1991 = (
+        pib_all[pib_all["ano"] == 1991][["uf", "pib_per_capita"]]
+        .rename(columns={"pib_per_capita": "pib_pc_1991"})
+    )
+    if pib_1991.empty:
+        # Fallback: usar 1995 se 1991 não disponível
+        pib_1991 = (
+            pib_all[pib_all["ano"] == 1995][["uf", "pib_per_capita"]]
+            .rename(columns={"pib_per_capita": "pib_pc_1991"})
+        )
+
+    # ── Gini baseline (primeiro ano disponível por UF) ────────────────────────
+    gini_all = _fetch_ipeadata_states("PNADCA_GINIUF", "gini")
+    gini_baseline = (
+        gini_all.sort_values("ano")
+        .groupby("uf", as_index=False)
+        .first()[["uf", "gini"]]
+        .rename(columns={"gini": "gini_baseline"})
+    )
+
+    proxy = pib_1991.merge(gini_baseline, on="uf", how="outer")
+    proxy["log_pib_pc_1991"] = np.log(proxy["pib_pc_1991"].replace(0, np.nan))
+
+    proxy.to_parquet(cache_path, index=False)
+    print(f"Proxy histórico salvo: {len(proxy)} UFs")
+    return proxy
 
 
 if __name__ == "__main__":

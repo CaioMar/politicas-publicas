@@ -80,6 +80,114 @@ def run_reduced_form(df: pd.DataFrame) -> pd.DataFrame:
     return model
 
 
+def run_conditional_iv(df: pd.DataFrame) -> dict:
+    """
+    IV Condicional: testa robustez da exclusion restriction incluindo proxies
+    da situação pré-constitucional (1988) como controles adicionais.
+
+    Motivação
+    ---------
+    Ameaça identificada: o número de cadeiras pode ter sido determinado (em parte)
+    pelo nível de desigualdade / desenvolvimento dos estados em 1988.
+    Se Desig_1988 → Cadeiras  E  Desig_1988 → Gini_atual, a exclusion restriction
+    do IV fica comprometida (há caminho direto instrumento → outcome).
+
+    Estratégia
+    ----------
+    Controlando explicitamente para Desig_1988 (ou proxy) bloqueamos esse backdoor.
+    O instrumento passa a ser válido condicionalmente.
+
+    Proxies utilizadas (em ordem de preferência):
+      1. log_pib_pc_1991 : log PIB per capita estadual 1991 (IPEADATA/PIBPCE)
+         → correlacionado com desigualdade histórica; exógeno à política atual
+      2. gini_baseline   : primeiro Gini disponível no painel (≈2012)
+         → proxy da persistência inercial da desigualdade
+
+    Retorna
+    -------
+    dict com chaves:
+      'baseline'    : resultado OLS sem proxy histórica (referência)
+      'cond_pib91'  : IV controlando por log_pib_pc_1991
+      'cond_gini0'  : IV controlando por gini_baseline
+      'cond_both'   : IV controlando por ambas
+      'sensitivity' : DataFrame comparativo de coeficientes e p-values
+    """
+    results = {}
+    base_controls = "log_pib_per_cap + C(regiao) + gini_lag1"
+
+    # ── Verificar disponibilidade das proxies ─────────────────────────────────
+    has_pib91  = "log_pib_pc_1991" in df.columns and df["log_pib_pc_1991"].notna().any()
+    has_gini0  = "gini_baseline"   in df.columns and df["gini_baseline"].notna().any()
+
+    if not has_pib91 and not has_gini0:
+        warnings.warn(
+            "Proxies históricas ausentes do painel. "
+            "Execute build_panel.py com get_historical_proxy() habilitado.\n"
+            "O IV condicional não pode ser estimado sem elas."
+        )
+        return {}
+
+    def _ols_iv(df_clean: pd.DataFrame, extra: str, tag: str):
+        """Helper: OLS da forma reduzida + primeiro estágio com controles extras."""
+        controls = f"{base_controls} + {extra}" if extra else base_controls
+        fs = smf.ols(
+            f"representacao_relativa ~ distorcao_cadeiras + {controls}",
+            data=df_clean,
+        ).fit()
+        rf = smf.ols(
+            f"gini ~ distorcao_cadeiras + {controls}",
+            data=df_clean,
+        ).fit()
+        iv_est = rf.params["distorcao_cadeiras"] / fs.params["distorcao_cadeiras"]
+        return {
+            "tag": tag,
+            "fs_coef": fs.params["distorcao_cadeiras"],
+            "fs_fstat": fs.fvalue,
+            "rf_coef": rf.params["distorcao_cadeiras"],
+            "rf_pval": rf.pvalues["distorcao_cadeiras"],
+            "iv_wald": iv_est,
+            "n": int(fs.nobs),
+            "extra_controls": extra or "(none)",
+        }
+
+    # ── Especificação base (sem proxy histórica) ──────────────────────────────
+    req_cols = ["gini", "representacao_relativa", "distorcao_cadeiras",
+                "log_pib_per_cap", "gini_lag1"]
+    df0 = df.dropna(subset=req_cols).copy()
+    results["baseline"] = _ols_iv(df0, "", "baseline")
+
+    # ── Controlando por PIB per capita 1991 ───────────────────────────────────
+    if has_pib91:
+        df1 = df.dropna(subset=req_cols + ["log_pib_pc_1991"]).copy()
+        results["cond_pib91"] = _ols_iv(df1, "log_pib_pc_1991", "cond_pib91")
+
+    # ── Controlando por Gini baseline (persistência histórica) ───────────────
+    if has_gini0:
+        df2 = df.dropna(subset=req_cols + ["gini_baseline"]).copy()
+        results["cond_gini0"] = _ols_iv(df2, "gini_baseline", "cond_gini0")
+
+    # ── Controlando por ambas ─────────────────────────────────────────────────
+    if has_pib91 and has_gini0:
+        df3 = df.dropna(subset=req_cols + ["log_pib_pc_1991", "gini_baseline"]).copy()
+        results["cond_both"] = _ols_iv(df3, "log_pib_pc_1991 + gini_baseline", "cond_both")
+
+    # ── Tabela comparativa ────────────────────────────────────────────────────
+    sens = pd.DataFrame(list(results.values()))
+    results["sensitivity"] = sens
+
+    print("\n" + "=" * 70)
+    print("IV CONDICIONAL — Sensibilidade à ameaça de confundidor histórico")
+    print("=" * 70)
+    print(sens[["tag", "fs_fstat", "rf_coef", "rf_pval", "iv_wald",
+                "n", "extra_controls"]].to_string(index=False))
+    print("\nInterpretação:")
+    print("  Se rf_coef e iv_wald NÃO mudarem muito ao adicionar proxies históricas,")
+    print("  a exclusion restriction é robusta ao confundidor potencial.")
+    print("  Se mudarem significativamente → o instrumento estava contaminado.")
+
+    return results
+
+
 def run_2sls_total_effect(df: pd.DataFrame):
     """
     2SLS: efeito total de representacao_relativa sobre gini.
