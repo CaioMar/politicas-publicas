@@ -21,6 +21,12 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+# Register Unicode-capable fonts (DejaVu Sans covers Greek, math, and all
+# characters used in this paper that Helvetica's WinAnsiEncoding cannot render).
+_DEJAVU_DIR = "/usr/share/fonts/truetype/dejavu"
+pdfmetrics.registerFont(TTFont("DejaVuSans",      os.path.join(_DEJAVU_DIR, "DejaVuSans.ttf")))
+pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", os.path.join(_DEJAVU_DIR, "DejaVuSans-Bold.ttf")))
+
 
 def eq_image(latex_str, fontsize=11, color="#111111"):
     """Render a LaTeX math string via matplotlib mathtext and return a ReportLab Image."""
@@ -84,19 +90,19 @@ def build_styles():
         "abstract_head": S("PAbsH", fontSize=10, spaceAfter=4, spaceBefore=10,
                            fontName="Helvetica-Bold", alignment=TA_CENTER),
         "abstract": S("PAbs", fontSize=9.5, leading=13, leftIndent=1.2*cm,
-                      rightIndent=1.2*cm, spaceAfter=10, alignment=TA_JUSTIFY,
-                      textColor=gray),
+                      rightIndent=1.2*cm, spaceAfter=10, fontName="DejaVuSans",
+                      alignment=TA_JUSTIFY, textColor=gray),
         "keywords": S("PKW", fontSize=8.5, leading=12, leftIndent=1.2*cm,
                       rightIndent=1.2*cm, spaceAfter=16, textColor=gray,
                       fontName="Helvetica-Oblique"),
         "section":  S("PSec", fontSize=12, leading=15, spaceBefore=18,
-                      spaceAfter=6, fontName="Helvetica-Bold", textColor=dark),
+                      spaceAfter=6, fontName="DejaVuSans-Bold", textColor=dark),
         "subsection": S("PSSec", fontSize=10.5, leading=13, spaceBefore=10,
-                        spaceAfter=4, fontName="Helvetica-Bold", textColor=dark),
+                        spaceAfter=4, fontName="DejaVuSans-Bold", textColor=dark),
         "body":     S("PBody", fontSize=10, leading=14.5, spaceAfter=7,
-                      alignment=TA_JUSTIFY),
+                      fontName="DejaVuSans", alignment=TA_JUSTIFY),
         "body_small": S("PSmall", fontSize=9, leading=13, spaceAfter=6,
-                        alignment=TA_JUSTIFY, textColor=gray),
+                        fontName="DejaVuSans", alignment=TA_JUSTIFY, textColor=gray),
         "caption":  S("PCap", fontSize=8.5, leading=12, spaceAfter=8,
                       fontName="Helvetica-Oblique", textColor=gray, alignment=TA_CENTER),
         "footnote": S("PFn", fontSize=8, leading=11, spaceAfter=3,
@@ -104,7 +110,8 @@ def build_styles():
         "equation": S("PEq", fontSize=9.5, leading=14, leftIndent=1.5*cm,
                       spaceAfter=5, fontName="Courier"),
         "ref":      S("PRef", fontSize=8.5, leading=12, leftIndent=0.6*cm,
-                      firstLineIndent=-0.6*cm, spaceAfter=5, textColor=gray),
+                      firstLineIndent=-0.6*cm, spaceAfter=5, fontName="DejaVuSans",
+                      textColor=gray),
     }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -119,9 +126,9 @@ def make_table(data, col_widths, hdr_rows=1, caption="", styles_dict=None):
     """Build a styled academic table."""
     tbl = Table(data, colWidths=col_widths, repeatRows=hdr_rows)
     ts = [
-        ("FONTNAME",    (0,0), (-1, hdr_rows-1), "Helvetica-Bold"),
+        ("FONTNAME",    (0,0), (-1, hdr_rows-1), "DejaVuSans-Bold"),
         ("FONTSIZE",    (0,0), (-1, hdr_rows-1), 9),
-        ("FONTNAME",    (0, hdr_rows), (-1,-1), "Helvetica"),
+        ("FONTNAME",    (0, hdr_rows), (-1,-1), "DejaVuSans"),
         ("FONTSIZE",    (0, hdr_rows), (-1,-1), 9),
         ("BACKGROUND",  (0,0), (-1, hdr_rows-1), HDRBG),
         ("TEXTCOLOR",   (0,0), (-1, hdr_rows-1), HDRTXT),
@@ -147,7 +154,7 @@ def on_first_page(canvas, doc):
 
 def on_later_pages(canvas, doc):
     canvas.saveState()
-    canvas.setFont("Helvetica", 8)
+    canvas.setFont("DejaVuSans", 8)
     canvas.setFillColor(colors.HexColor("#888888"))
     # Running header
     header = "Martins, C. — Parliamentary Representation, Earmarked Transfers & Inequality"
@@ -513,7 +520,7 @@ def build_story(S):
     ]
 
     tbl3_data = [
-        ["Lag", "Coefficient (βₖ)", "p-value", "Cumulative IRF"],
+        ["Lag", "Coefficient (β_k)", "p-value", "Cumulative IRF"],
         ["Lag 0 (contemporaneous)", "−0.01188", "> 0.13", "−0.0119"],
         ["Lag 1", "−0.00738", "> 0.13", "−0.0193"],
         ["Lag 2", "−0.00485", "> 0.13", "−0.0241"],
@@ -584,11 +591,11 @@ def build_story(S):
 
     tbl5_data = [
         ["Specification", "FS F-stat", "RF coef.", "RF p-val.", "Wald IV", "N"],
-        ["Baseline (no hist. control)",                "—",  "—",     "—",    "—",       "243"],
-        ["+\u202fGini 1991 (ADH/Censo Demográfico)",   "—",  "—",     "—",    "—",       "243"],
-        ["+\u202flog PIB per capita 1991",              "—",  "—",     "—",    "—",       "243"],
-        ["+\u202fGini baseline (≈2012)",                "—",  "—",     "—",    "—",       "243"],
-        ["+\u202fGini 1991 + log PIB 1991 (joint)",     "—",  "—",     "—",    "—",       "243"],
+        ["Baseline (no hist. control)",              "—",  "—",     "—",    "—",       "243"],
+        ["+  Gini 1991 (ADH / Censo Demogr\u00e1fico)",  "—",  "—",     "—",    "—",       "243"],
+        ["+  log PIB per capita 1991",                "—",  "—",     "—",    "—",       "243"],
+        ["+  Gini baseline (\u22482012)",               "—",  "—",     "—",    "—",       "243"],
+        ["+  Gini 1991 + log PIB 1991 (joint)",       "—",  "—",     "—",    "—",       "243"],
     ]
     story += [
         sp(4),
