@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Congresso & Desigualdade — O que os dados dizem</title>
+<meta name="description" content="Análise de dados públicos sobre a relação entre a representação parlamentar dos estados brasileiros e a desigualdade de renda." />
+<meta property="og:title" content="Congresso & Desigualdade — O que os dados dizem" />
+<meta property="og:description" content="Estados com mais poder no Congresso ficam com mais verba federal. Mas isso reduz a desigualdade?" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f8f9fb;
+    --bg2: #ffffff;
+    --text: #1a1f36;
+    --text-muted: #6b7280;
+    --accent: #5b4fcf;
+    --accent2: #059669;
+    --accent3: #d97706;
+    --red: #dc2626;
+    --border: #e5e7eb;
+    --shadow: 0 2px 12px rgba(0,0,0,.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
+  a { color: var(--accent); }
+  a:hover { text-decoration: underline; }
+
+  /* NAV */
+  nav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: .9rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-brand { font-weight: 800; font-size: 1rem; color: var(--accent); }
+  .nav-link-academic {
+    font-size: .83rem;
+    background: var(--accent);
+    color: #fff;
+    padding: .35rem .9rem;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .nav-link-academic:hover { background: #4a3fbe; text-decoration: none; }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #5b4fcf 0%, #1e40af 60%, #065f46 100%);
+    color: #fff;
+    padding: 5rem 1.5rem 4rem;
+    text-align: center;
+  }
+  .hero-label {
+    display: inline-block;
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 20px;
+    padding: .3rem .9rem;
+    font-size: .82rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 1.4rem;
+  }
+  .hero h1 {
+    font-size: clamp(1.8rem, 5vw, 3.2rem);
+    font-weight: 900;
+    line-height: 1.15;
+    max-width: 780px;
+    margin: 0 auto 1.4rem;
+  }
+  .hero h1 em { font-style: normal; color: #fde68a; }
+  .hero p {
+    font-size: 1.1rem;
+    opacity: .88;
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+  }
+  .hero-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+    justify-content: center;
+  }
+  .pill {
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 20px;
+    padding: .35rem .85rem;
+    font-size: .83rem;
+  }
+
+  /* CONTAINER */
+  .container { max-width: 920px; margin: 0 auto; padding: 0 1.5rem; }
+  section { padding: 4rem 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+  /* SECTION HEADER */
+  .section-label {
+    display: inline-block;
+    background: #ede9fe;
+    color: var(--accent);
+    border-radius: 20px;
+    padding: .25rem .75rem;
+    font-size: .78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 1rem;
+  }
+  h2 { font-size: clamp(1.5rem, 4vw, 2.1rem); font-weight: 800; line-height: 1.2; margin-bottom: .7rem; }
+  .lead { font-size: 1.05rem; color: var(--text-muted); max-width: 660px; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .6rem; }
+  .card p { color: var(--text-muted); font-size: .93rem; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+  @media (max-width: 640px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 1.8rem; }
+  }
+
+  /* FINDING CALLOUT */
+  .finding {
+    background: #f0fdf4;
+    border: 1.5px solid var(--accent2);
+    border-radius: 12px;
+    padding: 1.8rem;
+    margin: 2rem 0;
+  }
+  .finding .title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent2); margin-bottom: .6rem; }
+  .finding h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: .6rem; color: #064e3b; line-height: 1.3; }
+  .finding p { color: #065f46; font-size: .95rem; }
+
+  .finding.warn {
+    background: #fffbeb;
+    border-color: var(--accent3);
+  }
+  .finding.warn h3 { color: #78350f; }
+  .finding.warn .title { color: var(--accent3); }
+  .finding.warn p { color: #92400e; }
+
+  .finding.neut {
+    background: #f8fafc;
+    border-color: #94a3b8;
+  }
+  .finding.neut h3 { color: var(--text); }
+  .finding.neut .title { color: #64748b; }
+  .finding.neut p { color: var(--text-muted); }
+
+  /* STEP-BY-STEP */
+  .chain {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    margin: 1.4rem 0;
+  }
+  .chain-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: .9rem 1.2rem;
+  }
+  .chain-row .icon { font-size: 1.6rem; flex-shrink: 0; width: 2.4rem; text-align: center; }
+  .chain-row .body h4 { font-size: .95rem; font-weight: 700; }
+  .chain-row .body p  { font-size: .85rem; color: var(--text-muted); margin-top: .2rem; }
+  .chain-row .badge {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: #ede9fe;
+    color: var(--accent);
+    border-radius: 6px;
+    padding: .25rem .6rem;
+    font-size: .78rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .chain-row .badge.yes { background: #d1fae5; color: #065f46; }
+  .chain-row .badge.weak { background: #fef3c7; color: #78350f; }
+  .chain-row .badge.no  { background: #fee2e2; color: #991b1b; }
+  .chain-arrow { text-align: center; font-size: 1.2rem; color: #94a3b8; }
+
+  /* FAQ */
+  .faq-item { margin-bottom: 1.2rem; }
+  .faq-item summary {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: .97rem;
+    padding: .7rem 1rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    list-style: none;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::before { content: '▶ '; font-size: .7rem; color: var(--accent); transition: .2s; }
+  .faq-item[open] summary::before { content: '▼ '; }
+  .faq-item .faq-body {
+    padding: .9rem 1rem 1rem 1.5rem;
+    font-size: .92rem;
+    color: var(--text-muted);
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    line-height: 1.7;
+  }
+
+  /* STAT NUMBERS */
+  .stat-row { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: 1.2rem; }
+  .stat { flex: 1; min-width: 120px; text-align: center; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: .9rem .5rem; }
+  .stat .num { font-size: 1.7rem; font-weight: 800; color: var(--accent); }
+  .stat .lbl { font-size: .76rem; color: var(--text-muted); margin-top: .2rem; }
+
+  /* CHART WRAP */
+  .chart-wrap { position: relative; margin: 1.2rem 0; }
+  .chart-label { font-size: .85rem; color: var(--text-muted); margin-top: .5rem; text-align: center; }
+
+  /* CTA */
+  .cta {
+    background: linear-gradient(135deg, #5b4fcf 0%, #1e40af 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 2.5rem;
+    text-align: center;
+    margin: 2rem 0;
+  }
+  .cta h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: .6rem; }
+  .cta p { opacity: .85; margin-bottom: 1.5rem; max-width: 500px; margin-inline: auto; }
+  .btn-white {
+    display: inline-block;
+    background: #fff;
+    color: var(--accent);
+    padding: .7rem 1.8rem;
+    border-radius: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: .95rem;
+  }
+  .btn-white:hover { background: #ede9fe; text-decoration: none; }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+    font-size: .82rem;
+    color: var(--text-muted);
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+  }
+  footer a { color: var(--accent); }
+  footer p + p { margin-top: .4rem; }
+
+  /* ANIMATION */
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity .55s ease, transform .55s ease; }
+  .fade-in.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">🇧🇷 Congresso &amp; Desigualdade</div>
+  <a href="../dashboard.html" class="nav-link-academic">📊 Análise completa (versão acadêmica)</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Ciência de Dados · Dados Públicos · Brasil</div>
+  <h1>Mais poder no Congresso deixa o Brasil <em>mais igualitário</em>?</h1>
+  <p>Analisamos 11 anos de emendas parlamentares e desigualdade de renda em todos os 27 estados para responder a essa pergunta.</p>
+  <div class="hero-pills">
+    <span class="pill">📅 2014–2024</span>
+    <span class="pill">🗺️ 27 estados</span>
+    <span class="pill">💰 R$ 100 bi+ em emendas</span>
+    <span class="pill">📈 8 testes estatísticos</span>
+  </div>
+</div>
+
+<!-- O QUE DESCOBRIMOS -->
+<section>
+<div class="container">
+  <div class="section-label">🔍 O que descobrimos</div>
+  <h2>A resposta curta: <em>não</em> — mas a história é mais complexa</h2>
+  <p class="lead">Estados super-representados no Congresso recebem muito mais verba federal. Mas esse dinheiro não está reduzindo a desigualdade de forma detectável nos dados.</p>
+
+  <div class="finding">
+    <div class="title">✅ Confirmado — o elo político funciona</div>
+    <h3>Estados pequenos recebem até 10× mais emendas per capita</h3>
+    <p>Roraima, Amapá e Acre recebem ~R$&nbsp;50–60 mi por 100 mil habitantes. São Paulo e Rio de Janeiro recebem menos de R$&nbsp;5 mi. A correlação com a representação no Congresso é fortíssima (p &lt; 0,001), e é <strong>causada</strong> pela maior força legislativa, não por outros fatores.</p>
+  </div>
+
+  <div class="finding warn">
+    <div class="title">⚠️ Fraco — o elo econômico é pequeno</div>
+    <h3>Mais emendas reduzem a desigualdade? Um pouco, mas quase não dá pra medir</h3>
+    <p>Dobrando as emendas per capita de um estado, o Gini (medida de desigualdade) cai em apenas ~0,007 pontos — muito menos que a variação natural entre estados. O efeito existe na direção esperada, mas é pequeno demais para ser conclusivo em qualquer teste.</p>
+  </div>
+
+  <div class="finding neut">
+    <div class="title">🔄 Inesperado — um efeito que anula o anterior</div>
+    <h3>Há um efeito direto que vai na direção oposta</h3>
+    <p>Quando controlamos pelas emendas, estados com mais poder parlamentar tendem a ter <em>maior</em> desigualdade. Isso não é mágica estatística — é que os estados menores e mais poderosos no Congresso já eram historicamente mais desiguais, por razões que vêm de antes das emendas existirem.</p>
+  </div>
+</div>
+</section>
+
+<!-- POR QUE IMPORTA -->
+<section>
+<div class="container">
+  <div class="section-label">🏛️ Por que isso importa</div>
+  <h2>O que são emendas e por que todo mundo quer mais delas</h2>
+  <p class="lead">Cada deputado federal tem direito a destinar centenas de milhões de reais por ano diretamente para projetos em estados e municípios — sem necessidade de aprovação do presidente ou dos ministros.</p>
+
+  <div class="grid-3" style="margin-top:1.8rem">
+    <div class="card">
+      <h3>💰 O que são emendas parlamentares</h3>
+      <p>São verbas do orçamento federal que cada deputado ou senador pode "marcar" para serem gastas em um destino específico: construção de hospitais, escolas, custeio de UBSs, obras de infraestrutura. Quem decide onde vai é o parlamentar, não o governo central.</p>
+    </div>
+    <div class="card">
+      <h3>📊 Quanto dinheiro é esse</h3>
+      <p>Em 2023 foram R$&nbsp;21,6 bilhões em emendas empenhadas. Para se ter noção: é mais do que o orçamento anual de muitos estados inteiros. O volume cresceu 4× entre 2014 e 2023.</p>
+    </div>
+    <div class="card">
+      <h3>⚖️ A assimetria constitucional</h3>
+      <p>A Constituição garante 8 cadeiras mínimas por estado e 70 máximas. Com isso, Roraima tem 5× mais representação proporcional que São Paulo. Mais cadeiras = mais deputados = mais emendas per capita.</p>
+    </div>
+  </div>
+
+  <div class="stat-row" style="margin-top:2rem">
+    <div class="stat"><div class="num">R$ 22bi</div><div class="lbl">emendas em 2023</div></div>
+    <div class="stat"><div class="num">+350%</div><div class="lbl">crescimento 2014–23</div></div>
+    <div class="stat"><div class="num">8×</div><div class="lbl">mín. cadeiras/estado</div></div>
+    <div class="stat"><div class="num">55%</div><div class="lbl">das emendas vão para saúde</div></div>
+    <div class="stat"><div class="num">27</div><div class="lbl">estados analisados</div></div>
+  </div>
+</div>
+</section>
+
+<!-- COMO FUNCIONA: A CADEIA CAUSAL -->
+<section>
+<div class="container">
+  <div class="section-label">🔗 Como funciona a cadeia</div>
+  <h2>De mais cadeiras no Congresso a (talvez) menos desigualdade</h2>
+  <p class="lead">Para a hipótese funcionar, <em>três elos</em> precisam ser robustos. Veja o que os dados mostram para cada um:</p>
+
+  <div class="chain" style="margin-top:2rem">
+    <div class="chain-row">
+      <div class="icon">⚖️</div>
+      <div class="body">
+        <h4>Constituição Federal (art. 45) — limites de 8 a 70 cadeiras</h4>
+        <p>A regra constitucional é o ponto de partida: ela cria a desigualdade de representação que vamos usar para estimar os efeitos causais.</p>
+      </div>
+      <div class="badge yes">base legal fixa</div>
+    </div>
+    <div class="chain-arrow">↓</div>
+    <div class="chain-row">
+      <div class="icon">🏛️</div>
+      <div class="body">
+        <h4>Representação relativa no Congresso</h4>
+        <p>RR tem 5× mais representação por habitante que SP. Esse é o nosso "tratamento": quanto poder legislativo proporcional um estado tem.</p>
+      </div>
+      <div class="badge yes">medido diretamente</div>
+    </div>
+    <div class="chain-arrow">↓ <strong>Elo 1</strong> — confirmado fortemente ✅</div>
+    <div class="chain-row">
+      <div class="icon">💰</div>
+      <div class="body">
+        <h4>Volume de emendas parlamentares per capita</h4>
+        <p>Mais poder → mais emendas. Efeito causal estimado: +46% de emendas para cada +1 ponto de representação relativa. Estatisticamente irrepreensível (F=98, muito acima do limiar de instrumento forte).</p>
+      </div>
+      <div class="badge yes">+46% por unidade · p &lt; 0,001</div>
+    </div>
+    <div class="chain-arrow">↓ <strong>Elo 2</strong> — fraco e inconclusivo ⚠️</div>
+    <div class="chain-row">
+      <div class="icon">📊</div>
+      <div class="body">
+        <h4>Gini estadual (medida de desigualdade)</h4>
+        <p>Mais emendas deveriam melhorar serviços de saúde e educação e reduzir a desigualdade. O efeito está na direção certa, mas é muito pequeno. Cinco testes independentes confirmam: não há sinal robusto.</p>
+      </div>
+      <div class="badge weak">efeito pequeno · p = 0,054</div>
+    </div>
+  </div>
+
+  <!-- CHART: emendas per capita by state -->
+  <div class="card" style="margin-top:2rem">
+    <h3>📊 Emendas per capita por estado — média 2014–2024</h3>
+    <div class="chart-wrap">
+      <canvas id="chartBarPub" height="220"></canvas>
+    </div>
+    <p class="chart-label">Estados menores receive muito mais verba federal por habitante. Essa disparidade é causada diretamente pela super-representação constitucional.</p>
+  </div>
+</div>
+</section>
+
+<!-- POR QUE NÃO FUNCIONA: 5 TESTES -->
+<section>
+<div class="container">
+  <div class="section-label">🧪 Por que a hipótese não se confirma</div>
+  <h2>Cinco testes independentes chegam à mesma conclusão</h2>
+  <p class="lead">Usamos métodos diferentes para verificar se emendas reduzem desigualdade. Todos apontam na mesma direção: o efeito não é detectável nos dados estaduais.</p>
+
+  <div class="grid-2" style="margin-top:1.8rem;gap:1rem">
+    <div class="card">
+      <h3>📅 Com defasagem temporal (até 3 anos)</h3>
+      <p>Esperamos 1, 2 e 3 anos antes de medir o efeito. O sinal sempre aponta na direção certa, mas nunca fica grande o suficiente para excluir o acaso estatístico. Efeito acumulado estimado: −0,022 pontos de Gini em 3 anos (não significativo).</p>
+    </div>
+    <div class="card">
+      <h3>🏥 Via gastos em saúde e educação (SICONFI)</h3>
+      <p>Emendas não aumentam os gastos estaduais em saúde (p=0,70) nem educação (p=0,19). O elo entre emendas e políticas sociais mensuráveis não existe nos dados estaduais — possivelmente porque o dinheiro vai para municípios, não para os governos estaduais.</p>
+    </div>
+    <div class="card">
+      <h3>📜 Com uma "lei natural" de experimento (DiD EC86)</h3>
+      <p>A EC 86/2015 tornou obrigatória a execução das emendas. Se emendas reduzissem desigualdade, estados que mais precisavam da lei (os que menos executavam antes) deveriam ter melhorado mais após 2016. Não melhoraram (p=0,80).</p>
+    </div>
+    <div class="card">
+      <h3>🎯 Com método anti-manipulação (Machine Learning)</h3>
+      <p>O método "Double/Debiased ML" remove os efeitos de todas as outras variáveis usando algoritmos de aprendizado de máquina. A estimativa mais limpa que temos: θ=+0,001, praticamente zero (IC: −0,004 a +0,006). O OLS comum estava mostrando resultado espúrio.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- O QUE ISSO SIGNIFICA -->
+<section>
+<div class="container">
+  <div class="section-label">💡 O que isso significa</div>
+  <h2>O problema não é falta de vontade política — é escala</h2>
+  <p class="lead">Mesmo considerando que emendas em saúde e educação têm um canal redistributivo real, a escala simplesmente não é suficiente para mover o Gini estadual de forma detectável.</p>
+
+  <div class="finding" style="margin-top:1.5rem">
+    <div class="title">🔢 Fazendo a conta</div>
+    <h3>Para mover o Gini de SP por 0,01 ponto via emendas seria preciso... muito mais</h3>
+    <p>O Gini de SP é ~0,50. Para reduzir em 0,01 ponto (2%) precisaria triplicar as emendas per capita — dobrando o orçamento atual de emendas do estado. Isso porque o canal funciona, mas o efeito unitário é muito pequeno (b = −0,007).</p>
+  </div>
+
+  <details class="faq-item" style="margin-top:2rem">
+    <summary>O estudo prova que emendas são inúteis?</summary>
+    <div class="faq-body">
+      <p>Não. O estudo não analisa o valor das emendas individualmente — analisa o efeito <em>agregado</em> no Gini <em>estadual</em>. É perfeitamente possível que uma UBS construída com emenda parlamentar tenha impacto real na vida de pessoas específicas. O que os dados mostram é que, em média, a magnitude do efeito na desigualdade medida por estado e por ano é pequena demais para ser detectada estatisticamente.</p>
+    </div>
+  </details>
+  <details class="faq-item">
+    <summary>O que seria necessário para a hipótese funcionar melhor?</summary>
+    <div class="faq-body">
+      <p>Três fatores poderiam fortalecer o efeito: <strong>(1) Dados municipais</strong> — emendas são executadas nos municípios, não nos estados. Análise no nível municipal (5.570 unidades vs. 27) teria muito mais poder estatístico. <strong>(2) Mais tempo</strong> — a redistribuição via capital humano leva décadas, não anos. <strong>(3) Melhor direcionamento</strong> — emendas para regiões mais pobres dentro dos estados poderiam ter efeito maior na desigualdade interna.</p>
+    </div>
+  </details>
+  <details class="faq-item">
+    <summary>Por que estados pequenos têm mais poder no Congresso?</summary>
+    <div class="faq-body">
+      <p>É uma decisão histórica de 1988. Os constituintes quiseram garantir que estados pequenos da Amazônia e do Nordeste não fossem completamente eclipsados por São Paulo e Minas. O art. 45 da Constituição Federal define o mínimo de 8 e o máximo de 70 deputados por estado, independentemente da população. Isso cria uma distorção que nenhuma lei ordinária pode mudar — só outra emenda constitucional poderia alterar essa regra.</p>
+    </div>
+  </details>
+  <details class="faq-item">
+    <summary>Esse estudo foi revisado por especialistas?</summary>
+    <div class="faq-body">
+      <p>Esta é uma análise exploratória com dados públicos, não um artigo acadêmico formalmente revisado por pares. Os métodos utilizados (mediação de Baron e Kenny, Double/Debiased ML, Difference-in-Differences) são padrão na literatura de economia política e econometria causal. O código e os dados são públicos para auditoria. Para uma análise definitiva, seria necessário um dataset municipal, mais anos de dados, e revisão por pares especialistas em finanças públicas brasileiras.</p>
+    </div>
+  </details>
+</div>
+</section>
+
+<!-- CTA -->
+<section style="padding:3rem 0">
+<div class="container">
+  <div class="cta">
+    <h3>Quer ver os números completos?</h3>
+    <p>A versão acadêmica tem todas as equações, tabelas de regressão, gráficos de robustez e referências bibliográficas.</p>
+    <a href="../dashboard.html" class="btn-white">📊 Abrir análise completa →</a>
+  </div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Análise com dados públicos: <a href="https://portaldatransparencia.gov.br/emendas" target="_blank" rel="noopener">Portal da Transparência</a> (emendas 2014–2024) · <a href="http://www.ipeadata.gov.br" target="_blank" rel="noopener">IPEADATA</a> (Gini PNAD Contínua) · <a href="https://apidatalake.tesouro.gov.br/docs/siconfi/" target="_blank" rel="noopener">SICONFI/Tesouro</a> (gastos estaduais) · <a href="https://www.ibge.gov.br" target="_blank" rel="noopener">IBGE</a> (Censo 2022)</p>
+  <p>Python 3.10 · statsmodels · scikit-learn · Código aberto em <a href="https://github.com/CaioMar/politicas-publicas" target="_blank" rel="noopener">github.com/CaioMar/politicas-publicas</a></p>
+</footer>
+
+<script>
+Chart.defaults.color = '#6b7280';
+Chart.defaults.borderColor = '#e5e7eb';
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+
+// Bar chart: emendas per capita by state (sorted by value)
+const PUB_BAR = [
+  {uf:'AP', v:58.9}, {uf:'AC', v:50.5}, {uf:'RR', v:49.3}, {uf:'TO', v:28.8},
+  {uf:'RO', v:23.7}, {uf:'PI', v:21.3}, {uf:'SE', v:19.8}, {uf:'RN', v:18.8},
+  {uf:'PB', v:18.4}, {uf:'DF', v:17.2}, {uf:'AL', v:15.3}, {uf:'AM', v:14.1},
+  {uf:'ES', v:14.1}, {uf:'MS', v:14.0}, {uf:'MA', v:12.6}, {uf:'MT', v:12.3},
+  {uf:'PE', v:11.4}, {uf:'GO', v:11.0}, {uf:'PA', v:10.7}, {uf:'PR', v:10.6},
+  {uf:'RS', v:10.2}, {uf:'SC', v:10.0}, {uf:'BA', v:10.0}, {uf:'CE', v:9.1},
+  {uf:'MG', v:9.0}, {uf:'RJ', v:6.4}, {uf:'SP', v:4.7}
+];
+new Chart(document.getElementById('chartBarPub'), {
+  type: 'bar',
+  data: {
+    labels: PUB_BAR.map(d => d.uf),
+    datasets: [{
+      label: 'R$ mi / 100k hab',
+      data: PUB_BAR.map(d => d.v),
+      backgroundColor: PUB_BAR.map(d =>
+        d.v >= 40 ? '#5b4fcf' : d.v >= 20 ? '#818cf8' : d.v >= 12 ? '#a5b4fc' : '#ddd6fe'
+      ),
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => `R$ ${ctx.raw} mi por 100 mil hab.` } }
+    },
+    scales: {
+      x: { title: { display: true, text: 'R$ mi por 100 mil habitantes (média 2014–2024)' } },
+      y: { ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+// Intersection observer for animations
+const obs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }), { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

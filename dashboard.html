@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Representação Política, Emendas e Desigualdade no Brasil</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<!-- Mermaid -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d2e;
+  --surface2: #242740;
+  --accent: #6c63ff;
+  --accent2: #ff6584;
+  --accent3: #43d9ad;
+  --text: #e2e8f0;
+  --text-muted: #8892a4;
+  --border: #2d3148;
+  --green: #43d9ad;
+  --yellow: #fbbf24;
+  --red: #f87171;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+}
+
+/* NAV */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(15,17,23,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px;
+}
+.nav-brand { font-weight: 700; font-size: 1rem; color: var(--accent); letter-spacing: 0.02em; }
+.nav-links { display: flex; gap: 1.6rem; }
+.nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; transition: color .2s; }
+.nav-links a:hover { color: var(--text); }
+
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, #0f1117 0%, #1a1d2e 40%, #1e1a3a 100%);
+  padding: 5rem 2rem 4rem;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(108,99,255,.18) 0%, transparent 70%);
+}
+.hero-tag {
+  display: inline-block;
+  background: rgba(108,99,255,.15);
+  border: 1px solid rgba(108,99,255,.4);
+  color: var(--accent);
+  padding: .3rem .9rem;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 1.4rem;
+}
+.hero h1 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 800;
+  max-width: 800px;
+  margin: 0 auto 1rem;
+  line-height: 1.2;
+}
+.hero h1 span { color: var(--accent); }
+.hero p {
+  color: var(--text-muted);
+  max-width: 680px;
+  margin: 0 auto 2.5rem;
+  font-size: 1.05rem;
+}
+.stat-row {
+  display: flex; flex-wrap: wrap; gap: 1.2rem;
+  justify-content: center; position: relative;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.2rem 1.8rem;
+  text-align: center; min-width: 150px;
+}
+.stat-card .num { font-size: 2rem; font-weight: 800; color: var(--accent); }
+.stat-card .label { font-size: .78rem; color: var(--text-muted); margin-top: .2rem; }
+
+/* CONTENT */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+section { padding: 4rem 0; }
+.section-header { margin-bottom: 2.5rem; }
+.section-tag {
+  display: inline-block;
+  font-size: .72rem; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: .5rem;
+}
+.section-header h2 { font-size: clamp(1.4rem, 2.5vw, 2rem); font-weight: 700; margin-bottom: .6rem; }
+.section-header p { color: var(--text-muted); max-width: 680px; font-size: .95rem; }
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.6rem;
+  margin-bottom: 1.5rem;
+}
+.card h3 { font-size: 1rem; font-weight: 700; margin-bottom: .8rem; display: flex; align-items: center; gap: .5rem; }
+.card p { color: var(--text-muted); font-size: .9rem; }
+
+/* GRID */
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.5rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+
+/* MERMAID */
+.mermaid-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  overflow-x: auto;
+  text-align: center;
+}
+.mermaid { display: inline-block; }
+
+/* CHART WRAPPER */
+.chart-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.4rem;
+  position: relative;
+}
+.chart-wrap h3 {
+  font-size: .9rem; font-weight: 700;
+  margin-bottom: 1rem;
+  display: flex; align-items: center; gap: .5rem;
+}
+.chart-wrap canvas { max-height: 320px; }
+
+/* PATH DIAGRAM */
+.path-row {
+  display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+  justify-content: center; margin: 2rem 0;
+}
+.path-node {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .9rem 1.3rem;
+  text-align: center;
+  min-width: 120px;
+}
+.path-node .label { font-size: .7rem; color: var(--text-muted); margin-bottom: .2rem; }
+.path-node .val { font-size: 1.2rem; font-weight: 800; }
+.path-arrow {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 0 .5rem;
+}
+.path-arrow .coef { font-size: .72rem; font-weight: 700; margin-bottom: .15rem; }
+.path-arrow .arrow { font-size: 1.4rem; color: var(--text-muted); }
+.path-arrow .sig { font-size: .65rem; }
+.path-arrow.good .coef { color: var(--green); }
+.path-arrow.warn .coef { color: var(--yellow); }
+.path-arrow.bad .coef { color: var(--red); }
+
+/* TABLE */
+.data-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.data-table th {
+  text-align: left; padding: .6rem .8rem;
+  background: var(--surface2);
+  color: var(--text-muted); font-weight: 600; font-size: .75rem;
+  letter-spacing: .05em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.data-table td {
+  padding: .55rem .8rem;
+  border-bottom: 1px solid rgba(45,49,72,.5);
+}
+.data-table tr:hover td { background: rgba(108,99,255,.06); }
+.pill {
+  display: inline-block; padding: .15rem .5rem;
+  border-radius: 4px; font-size: .75rem; font-weight: 600;
+}
+.pill-green { background: rgba(67,217,173,.15); color: var(--green); }
+.pill-red { background: rgba(248,113,113,.15); color: var(--red); }
+.pill-yellow { background: rgba(251,191,36,.15); color: var(--yellow); }
+.pill-blue { background: rgba(108,99,255,.15); color: var(--accent); }
+
+/* STEPS */
+.steps { display: flex; flex-direction: column; gap: 1rem; }
+.step {
+  display: flex; gap: 1rem; align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+}
+.step-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800; font-size: .85rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.step-body h4 { font-size: .95rem; font-weight: 700; margin-bottom: .3rem; }
+.step-body p { color: var(--text-muted); font-size: .875rem; }
+
+/* CALLOUT */
+.callout {
+  background: rgba(108,99,255,.08);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  padding: 1rem 1.4rem;
+  margin: 1.2rem 0;
+  font-size: .9rem;
+  color: var(--text);
+}
+.callout.green {
+  background: rgba(67,217,173,.07);
+  border-left-color: var(--green);
+}
+.callout.yellow {
+  background: rgba(251,191,36,.07);
+  border-left-color: var(--yellow);
+}
+.callout.red {
+  background: rgba(248,113,113,.07);
+  border-left-color: var(--red);
+}
+
+/* NEXT STEPS */
+.next-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; }
+.next-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.4rem;
+}
+.next-card .priority {
+  font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; margin-bottom: .5rem;
+}
+.next-card h4 { font-size: .95rem; font-weight: 700; margin-bottom: .5rem; }
+.next-card p { font-size: .83rem; color: var(--text-muted); }
+.priority-high { color: var(--red); }
+.priority-med { color: var(--yellow); }
+.priority-low { color: var(--green); }
+.priority-done { color: var(--green); opacity: .7; text-decoration: line-through; }
+
+/* DIVIDER */
+.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+/* FOOTER */
+footer {
+  text-align: center; padding: 2.5rem;
+  color: var(--text-muted); font-size: .82rem;
+  border-top: 1px solid var(--border);
+}
+footer a { color: var(--accent); text-decoration: none; }
+
+/* TOOLTIP */
+[data-tooltip] { position: relative; cursor: help; }
+[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+  background: #1e2236;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: .78rem;
+  padding: .4rem .7rem;
+  border-radius: 6px;
+  white-space: nowrap; z-index: 50;
+  pointer-events: none;
+}
+
+/* SCROLL ANIMATIONS */
+.fade-in { opacity: 0; transform: translateY(20px); transition: opacity .5s, transform .5s; }
+.fade-in.visible { opacity: 1; transform: none; }
+
+@media (max-width: 640px) {
+  .nav-links { display: none; }
+  .path-row { flex-direction: column; align-items: stretch; }
+  .path-arrow { flex-direction: row; }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav>
+  <div class="nav-brand">🇧🇷 Análise Causal · Congresso & Desigualdade</div>
+  <div class="nav-links">
+    <a href="docs/index.html" style="opacity:.65;font-size:.8rem;border:1px solid rgba(108,99,255,.4);border-radius:20px;padding:.15rem .6rem">🌐 Versão pública</a>
+    <a href="#contexto">Contexto</a>
+    <a href="#evidencias">Evidências</a>
+    <a href="#modelo">Modelo Causal</a>
+    <a href="#resultados">Resultados</a>
+    <a href="#aprofundamento">Aprofundamento</a>
+    <a href="#robustez">Robustez Avançada</a>
+    <a href="#proximos">Próximos Passos</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">Ciência de Dados · Inferência Causal</div>
+  <h1>Mais cadeiras no <span>Congresso</span> reduzem a <span>desigualdade</span>?</h1>
+  <p>Uma análise causal com dados reais (2014–2023) sobre como a sobre-representação parlamentar afeta o fluxo de emendas e, por sua vez, o Coeficiente de Gini estadual.</p>
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="num">27</div>
+      <div class="label">Unidades federativas</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">11</div>
+      <div class="label">Anos analisados</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">297</div>
+      <div class="label">Observações no painel</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">0.69</div>
+      <div class="label">Correlação T → M</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">F=98</div>
+      <div class="label">Força do instrumento (IV)</div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXTO -->
+<section id="contexto">
+<div class="container">
+  <div class="section-header fade-in">
+    <div class="section-tag">📚 Contexto</div>
+    <h2>O problema da representação no Brasil</h2>
+    <p>A Constituição de 1988 estabelece limites de cadeiras na Câmara dos Deputados: mínimo de 8 e máximo de 70 por estado. Isso cria uma distorção enorme — estados pequenos têm peso desproporcional na distribuição de recursos públicos via emendas parlamentares.</p>
+  </div>
+
+  <div class="grid-2 fade-in">
+    <div class="card">
+      <h3>🏛️ O que são emendas parlamentares?</h3>
+      <p>Emendas são recursos que deputados e senadores destinam para obras e serviços em seus estados/municípios. Após as ECs 86/2015 e 100/2019, tornaram-se <strong>impositivas</strong> — o governo federal é obrigado a executá-las. Em 2023, o total empenhado foi de quase <strong>R$ 40 bilhões</strong>.</p>
+    </div>
+    <div class="card">
+      <h3>⚖️ O que é o Coeficiente de Gini?</h3>
+      <p>O Gini mede desigualdade de renda: 0 = igualdade perfeita, 1 = desigualdade máxima. O Brasil tem Gini nacional ~0.52 — entre os mais altos do mundo. Os estados variam entre SC (0.42) e PB (0.56). Os dados são da <strong>PNAD Contínua / IPEADATA</strong>.</p>
+    </div>
+  </div>
+
+  <div class="grid-3 fade-in" style="margin-top:1.5rem">
+    <div class="card">
+      <h3>🟣 Tratamento (T)</h3>
+      <p><strong>Representação Relativa</strong> = % cadeiras do estado ÷ % população nacional. SP tem 0.63× (sub-representado), RR tem 5.04× (super-representado).</p>
+    </div>
+    <div class="card">
+      <h3>🔵 Mediador (M)</h3>
+      <p><strong>Emendas per capita</strong> = R$ empenhados / 100 mil habitantes por estado por ano. AP recebe R$ 58,9 mi/100k vs SP que recebe R$ 4,7 mi/100k.</p>
+    </div>
+    <div class="card">
+      <h3>🟡 Resultado (Y)</h3>
+      <p><strong>Gini estadual</strong> medido anualmente pela PNAD Contínua. A hipótese é que mais emendas deveriam melhorar serviços públicos e reduzir o Gini.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<hr class="divider" />
+
+<!-- EVIDÊNCIAS -->
+<section id="evidencias">
+<div class="container">
+  <div class="section-header fade-in">
+    <div class="section-tag">📊 Evidências</div>
+    <h2>O que os dados mostram</h2>
+    <p>Antes de qualquer modelo, os dados brutos já revelam padrões fortes — e algumas surpresas.</p>
+  </div>
+
+  <div class="grid-2 fade-in">
+    <div class="chart-wrap">
+      <h3>📍 Representação vs. Emendas por estado (2023)</h3>
+      <canvas id="chartScatterTM"></canvas>
+      <p style="font-size:.75rem;color:var(--text-muted);margin-top:.8rem">Cada ponto é um estado. Tamanho proporcional ao Gini. Correlação = <strong>0.693</strong>.</p>
+    </div>
+    <div class="chart-wrap">
+      <h3>📊 Emendas per capita por UF (2023, R$ mi / 100k hab)</h3>
+      <canvas id="chartBarEmendas"></canvas>
+    </div>
+  </div>
+
+  <div class="grid-2 fade-in" style="margin-top:1.5rem">
+    <div class="chart-wrap">
+      <h3>📈 Emendas ao longo do tempo por grupo de representação</h3>
+      <canvas id="chartLineEmendas"></canvas>
+      <p style="font-size:.75rem;color:var(--text-muted);margin-top:.8rem">Estados super-representados recebem consistentemente 3–4× mais emendas per capita.</p>
+    </div>
+    <div class="chart-wrap">
+      <h3>📉 Gini ao longo do tempo por grupo</h3>
+      <canvas id="chartLineGini"></canvas>
+      <p style="font-size:.75rem;color:var(--text-muted);margin-top:.8rem">Todos os grupos mostram queda similar no Gini — difícil ver efeito diferencial das emendas.</p>
+    </div>
+  </div>
+
+  <div class="fade-in" style="margin-top:2rem">
+    <div class="card">
+      <h3>🗺️ Tabela completa — 27 estados (2023)</h3>
+      <div style="overflow-x:auto">
+      <table class="data-table" id="seatsTable"></table>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<hr class="divider" />
+
+<!-- MODELO CAUSAL -->
+<section id="modelo">
+<div class="container">
+  <div class="section-header fade-in">
+    <div class="section-tag">🔬 Modelo Causal</div>
+    <h2>Por que simples correlação não basta?</h2>
+    <p>Estados pequenos têm mais cadeiras E são mais pobres — isso cria uma confusão entre tratamento e resultado. Precisamos de um modelo que isole o efeito causal real.</p>
+  </div>
+
+  <!-- RATIONALE CANVAS -->
+  <div class="card fade-in" style="margin-bottom:1.5rem">
+    <h3>🧠 A lógica da análise em 3 passos</h3>
+    <p style="font-size:.88rem;color:var(--text-muted);margin:.4rem 0 1.2rem">Antes do tecnicismo, a intuição causal que motiva o modelo:</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>A Constituição cria desigualdade de poder político (art.&nbsp;45, CF/88)</h4>
+          <p>Cada estado tem entre 8 e 70 deputados, <em>independentemente do tamanho da população</em>. Roraima (631 mil hab.) tem 8 cadeiras; São Paulo (46 mi hab.) tem 70. Isso gera variação <strong>exógena</strong> na representação relativa — mais poder legislativo por habitante. Essa variação não foi escolhida pelos estados: ela vem de uma regra constitucional. Por isso ela funciona como instrumento causal.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Mais poder parlamentar → mais emendas per capita (T → M)</h4>
+          <p>Deputados de estados sobre-representados têm mais poder de barganha para aprovar emendas orçamentárias. O dado confirma: AP e RR recebem até R$&nbsp;60 mi por 100 mil habitantes; SP e RJ, menos de R$&nbsp;5 mi. Coeficiente a&nbsp;=&nbsp;+0,458, p&nbsp;&lt;&nbsp;0,001, F-stat&nbsp;=&nbsp;98 — <strong>elo causal robusto</strong>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Mais emendas redistributivas → Gini menor? (M → Y — a pergunta central)</h4>
+          <p>Emendas em saúde e educação poderiam melhorar capital humano e salários da base da pirâmide, reduzindo o Gini. O modelo encontra um efeito negativo (b&nbsp;=&nbsp;−0,0068), mas pequeno e borderline (p&nbsp;=&nbsp;0,054). <strong>O efeito existe mas não é grande o suficiente para mudar o Gini estadual de forma detectável</strong> — coerente com os cinco testes de robustez adicionais.</p>
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:1rem;font-size:.86rem">
+      <strong>🔍 Por que precisamos de um modelo causal formal?</strong> Sem controlar pelos confundidores (PIB, região, Gini histórico) e sem o instrumento IV, qualquer regressão simples mistura causalidade com correlação espúria. A DAG abaixo mostra graficamente quais caminhos kausais o modelo identifica.
+    </div>
+  </div>
+
+  <div class="mermaid-wrapper fade-in">
+    <div class="mermaid">
+flowchart LR
+    Z["⚖️ Instrumento Z\nLimites constitucionais\nmín=8 / máx=70 cadeiras"]:::iv
+    T["🏛️ Tratamento T\nRepresentação\nRelativa"]:::treatment
+    M["💰 Mediador M\nEmendas\nper capita"]:::mediator
+    Y["📊 Resultado Y\nGini\nestadual"]:::outcome
+    U(["🔀 Confundidores\nPIB per capita\nRegião\nGini defasado"]):::confound
+
+    Z -->|"instrumento\n válido"| T
+    T -->|"a = +0.458\n p < 0.001 ✅"| M
+    M -->|"b = −0.0068\n p = 0.054 ✱"| Y
+    T -.->|"c' = +0.0058\n efeito direto\n p = 0.010 ✅"| Y
+    U --> T
+    U --> M
+    U --> Y
+
+    classDef iv fill:#2d1f5e,stroke:#6c63ff,color:#c4b5fd
+    classDef treatment fill:#1f2d5e,stroke:#60a5fa,color:#bfdbfe
+    classDef mediator fill:#1f3d3a,stroke:#43d9ad,color:#a7f3d0
+    classDef outcome fill:#3d1f1f,stroke:#f87171,color:#fecaca
+    classDef confound fill:#2d2d1f,stroke:#fbbf24,color:#fde68a
+    </div>
+  </div>
+
+  <div class="callout fade-in">
+    <strong>Por que usamos Variável Instrumental (IV)?</strong> A representação relativa é determinada pela Constituição, não por escolha dos estados. Os limites de 8 e 70 cadeiras funcionam como um "experimento natural" que nos permite isolar o efeito causal da representação sobre as emendas, sem que fatores como PIB ou história da região contaminem a estimativa.
+  </div>
+
+  <!-- DAG LEGEND -->
+  <div class="grid-2 fade-in" style="margin-top:1.5rem">
+    <div class="card">
+      <h3>↗️ Interpretando cada seta da DAG</h3>
+      <table class="data-table" style="margin-top:.5rem;font-size:.82rem">
+        <thead><tr><th>Seta</th><th>Significado causal</th><th>Estimativa</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="white-space:nowrap;color:var(--accent)"><strong>Z → T</strong></td>
+            <td>Limites constitucionais (8–70 cadeiras) criam variação exógena na representação — o instrumento IV</td>
+            <td style="white-space:nowrap;color:var(--green)">F-stat = 98 ✅</td>
+          </tr>
+          <tr>
+            <td style="white-space:nowrap;color:var(--green)"><strong>T → M&nbsp;&nbsp;(a)</strong></td>
+            <td>Super-representação aumenta emendas per capita — o primeiro elo da cadeia</td>
+            <td style="white-space:nowrap;color:var(--green)">+0.458 ***</td>
+          </tr>
+          <tr>
+            <td style="white-space:nowrap;color:var(--yellow)"><strong>M → Y&nbsp;&nbsp;(b)</strong></td>
+            <td>Mais emendas reduzem marginalmente o Gini — elo fraco, borderline</td>
+            <td style="white-space:nowrap;color:var(--yellow)">−0.0068 ·</td>
+          </tr>
+          <tr>
+            <td style="white-space:nowrap;color:var(--red)"><strong>T → Y&nbsp;&nbsp;(c')</strong></td>
+            <td>Efeito direto: controlando por emendas, representação <em>eleva</em> o Gini — estruturas econômicas históricas dos estados pequenos</td>
+            <td style="white-space:nowrap;color:var(--red)">+0.0058 **</td>
+          </tr>
+          <tr>
+            <td style="white-space:nowrap;color:var(--yellow)"><strong>U → ×</strong></td>
+            <td>Confundidores observados (log PIB per capita, Gini defasado) — controlados via regressão múltipla</td>
+            <td style="white-space:nowrap;color:var(--text-muted)">controlados</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:.7rem;font-size:.78rem;color:var(--text-muted)">*** p&lt;0.001  ** p&lt;0.01  · p&lt;0.10 (borderline). IC bootstrap 95% para efeito indireto: [−0.0062, +0.00002].</p>
+    </div>
+    <div class="card">
+      <h3>📐 Especificação econométrica completa</h3>
+      <p style="font-size:.82rem;margin-bottom:.7rem;color:var(--text-muted)">Três equações de Baron &amp; Kenny estimadas via OLS com HC3:</p>
+      <div style="font-family:monospace;font-size:.78rem;background:rgba(0,0,0,.3);padding:.8rem 1rem;border-radius:6px;line-height:1.9">
+        <span style="color:var(--accent3)"># 1º estágio (T → M)</span><br>
+        log(emendas_pc) = α + <span style="color:var(--green)">a·rep_rel</span> + γ·log(PIB) + λ·gini_lag + C(região)<br><br>
+        <span style="color:var(--accent3)"># Resultado sem mediador (T → Y)</span><br>
+        gini = α + <span style="color:var(--yellow)">c·rep_rel</span> + γ·log(PIB) + λ·gini_lag + C(região)<br><br>
+        <span style="color:var(--accent3)"># Modelo completo (M → Y, c')</span><br>
+        gini = α + <span style="color:var(--red)">c'·rep_rel</span> + <span style="color:var(--yellow)">b·log(emendas_pc)</span> + γ·log(PIB) + λ·gini_lag + C(região)
+      </div>
+      <p style="margin-top:.7rem;font-size:.78rem;color:var(--text-muted)">N=243 (27 UFs × 2017–2022 com dados completos). Efeito indireto = a×b, IC via bootstrap paramétrico n=2.000.</p>
+    </div>
+  </div>
+
+  <div class="grid-3 fade-in" style="margin-top:1.5rem">
+    <div class="card">
+      <h3>🎯 Primeiro Estágio (IV)</h3>
+      <p>Quanto a representação relativa afeta as emendas?<br><br>
+        <strong style="color:var(--green);font-size:1.1rem">β = +0.458 (t = 14.3, p &lt; 0.001)</strong><br><br>
+        F-estatística = 98 &gt;&gt; 10 (limiar de instrumento forte). Excelente identificação.
+      </p>
+    </div>
+    <div class="card">
+      <h3>📏 Forma Reduzida (IV)</h3>
+      <p>Efeito total da representação no Gini (caminhos T→M→Y + T→Y direto):<br><br>
+        <strong style="color:var(--yellow);font-size:1.1rem">c = +0.0027 (p = 0.151)</strong><br><br>
+        Não significativo. O efeito total da representação no Gini é praticamente zero.
+      </p>
+    </div>
+    <div class="card">
+      <h3>🔄 Efeito de Mediação</h3>
+      <p>Efeito indireto via emendas (a × b):<br><br>
+        <strong style="color:var(--text-muted);font-size:1.1rem">a×b = −0.0031</strong><br><br>
+        IC bootstrap 95%: [−0.0062, +0.00002] — cruza zero, <em>não significativo</em>.
+      </p>
+    </div>
+  </div>
+</div>
+</section>
+
+<hr class="divider" />
+
+<!-- RESULTADOS -->
+<section id="resultados">
+<div class="container">
+  <div class="section-header fade-in">
+    <div class="section-tag">🎯 Resultados</div>
+    <h2>O que a análise nos diz</h2>
+    <p>O modelo revela um padrão de <em>supressão causal</em> — dois efeitos opostos que se cancelam.</p>
+  </div>
+
+  <!-- PATH DIAGRAM -->
+  <div class="card fade-in" style="padding:2rem">
+    <h3 style="margin-bottom:1.5rem;text-align:center">Caminhos causais estimados</h3>
+    <div class="path-row">
+      <div class="path-node">
+        <div class="label">TRATAMENTO (T)</div>
+        <div class="val" style="color:var(--accent)">Representação</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">SP: 0.63× → RR: 5.04×</div>
+      </div>
+      <div class="path-arrow good">
+        <div class="coef">a = +0.458 ***</div>
+        <div class="arrow">──→</div>
+        <div class="sig" style="color:var(--green)">p &lt; 0.001 ✅</div>
+      </div>
+      <div class="path-node">
+        <div class="label">MEDIADOR (M)</div>
+        <div class="val" style="color:var(--accent3)">log(Emendas/100k)</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">SP: R$4.7mi → AP: R$58.9mi</div>
+      </div>
+      <div class="path-arrow warn">
+        <div class="coef">b = −0.0068 ·</div>
+        <div class="arrow">──→</div>
+        <div class="sig" style="color:var(--yellow)">p = 0.054 borderline</div>
+      </div>
+      <div class="path-node">
+        <div class="label">RESULTADO (Y)</div>
+        <div class="val" style="color:var(--accent2)">Gini</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">SC: 0.42 → PB: 0.56</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid var(--border)">
+      <span style="color:var(--text-muted);font-size:.85rem">Efeito direto T→Y (c'): </span>
+      <strong style="color:var(--red)">+0.0058** — representação aumenta o Gini quando controlamos por emendas</strong>
+    </div>
+  </div>
+
+  <div class="grid-2 fade-in" style="margin-top:1.5rem">
+    <div>
+      <div class="callout green">
+        <strong>✅ O que se confirma:</strong> A cadeia T → M é robusta e forte. Estados super-representados recebem ~60% mais emendas per capita (exp(0.46)≈1.6×). O instrumento funciona perfeitamente (F=98).
+      </div>
+      <div class="callout yellow">
+        <strong>⚠️ O que é fraco:</strong> O caminho M → Y (emendas reduzem Gini) existe mas é borderline (p=0.054). 10× mais emendas per capita reduz o Gini em apenas 0.016 pontos — um efeito pequeno.
+      </div>
+      <div class="callout red">
+        <strong>❌ A surpresa — efeito direto perverso:</strong> Controlando para emendas, mais representação <em>aumenta</em> o Gini (+0.006, p=0.01). Isso captura o fato de que estados pequenos e super-representados têm estruturas econômicas historicamente mais desiguais, independentemente das emendas.
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <h3>🔄 Decomposição do efeito total</h3>
+      <canvas id="chartMedDecomp"></canvas>
+      <p style="font-size:.75rem;color:var(--text-muted);margin-top:.8rem">O efeito mediado via emendas (benéfico, negativo) é cancelado pelo efeito direto (perverso, positivo).</p>
+    </div>
+  </div>
+
+  <!-- SCATTER M→Y -->
+  <div class="fade-in" style="margin-top:1.5rem">
+    <div class="chart-wrap">
+      <h3>🔍 Emendas per capita vs Gini — 2023 (cada ponto = um estado)</h3>
+      <canvas id="chartScatterMY" style="max-height:280px"></canvas>
+    </div>
+  </div>
+
+  <div class="callout fade-in" style="margin-top:1.5rem">
+    <strong>📌 Conclusão principal:</strong> A hipótese "mais cadeiras → mais emendas → menos desigualdade" tem o <em>primeiro elo confirmado com força</em>. O segundo elo (M→Y) existe mas é pequeno demais para gerar efeito total significativo. A redistribuição via emendas está sendo eclipsada por determinantes estruturais de longo prazo da desigualdade.
+  </div>
+</div>
+</section>
+
+<hr class="divider" />
+
+<!-- PRÓXIMOS PASSOS -->
+<section id="proximos">
+<div class="container">
+  <div class="section-header fade-in">
+    <div class="section-tag">🚀 Próximos Passos</div>
+    <h2>O que um cientista de dados faria a seguir</h2>
+    <p>Esta análise estabelece uma base sólida, mas há limitações importantes e extensões que poderiam mudar as conclusões.</p>
+  </div>
+
+  <div class="next-steps fade-in">
+
+    <div class="next-card">
+      <div class="priority priority-high">🔴 Pendente · Identificação causal</div>
+      <h4>1. Dados de emendas municipais</h4>
+      <p>A API do Portal da Transparência possui o campo <code style="font-size:.8em">localidadeDoGasto</code> com município para ~26% dos registros (ex.: "CURITIBA - PR"). Porém, coleção completa exigiria 4.400+ requisições de API. Bloqueado principalmente pela ausência do desfecho (Y) municipal: o Gini municipal requer dados do Censo 2022 via IBGE/SIDRA (tabela 9605).</p>
+    </div>
+
+    <div class="next-card">
+      <div class="priority priority-done">✅ Realizado · Causalidade reversa</div>
+      <h4>2. Painel com efeitos fixos de estado</h4>
+      <p>Estimador de Primeiras Diferenças (FD): ΔGini ~ Δlog(emendas) + Δlog(PIB) + C(ano), N=216. Resultado: coef=−0.0033, p=0.52 — sinal correto mas não significativo. <a href="#aprofundamento" style="color:var(--accent)">→ Ver análise completa</a></p>
+    </div>
+
+    <div class="next-card">
+      <div class="priority priority-done">✅ Realizado · Heterogeneidade</div>
+      <h4>3. Análise por tipo de emenda</h4>
+      <p>OLS separado por macro-função (saúde, educação, social, agro/infra, outros): nenhum tipo apresenta efeito significativo no Gini estadual. Composição 2023: Saúde ≈ 55%, Outros ≈ 31%. <a href="#aprofundamento" style="color:var(--accent)">→ Ver análise completa</a></p>
+    </div>
+
+    <div class="next-card">
+      <div class="priority priority-done">✅ Realizado · Dinâmica temporal</div>
+      <h4>4. Defasagem temporal das emendas</h4>
+      <p>Modelo de lags distribuídos (N=189, UF+ano FE): IRF acumulado = −0.012 → −0.019 → −0.024 → −0.022 pontos de Gini ao longo de 3 anos. Nenhum lag individualmente significativo (p&gt;0.13), mas sinal negativo é consistente com efeito redistributivo de médio prazo. <a href="#robustez" style="color:var(--accent)">→ Ver gráfico IRF</a></p>
+    </div>
+
+    <div class="next-card">
+      <div class="priority priority-done">✅ Realizado · Mecanismo</div>
+      <h4>5. Mediadores intermediários (SICONFI/RREO)</h4>
+      <p>Gasto liquidado coletado via SICONFI para 27 UFs × 2018–2023 (N=180). Emendas não predizem gasto em saúde (p=0,70) nem educação (p=0,19); mas gasto em educação prediz redução do Gini (<strong>coef=−0.025, p=0.026</strong>). Canal emendas→educação→Gini não identificado na escala estadual. <a href="#robustez" style="color:var(--accent)">→ Ver gráfico mediação</a></p>
+    </div>
+
+    <div class="next-card">
+      <div class="priority priority-done">✅ Realizado · Robustez</div>
+      <h4>6. DiD — Emenda Constitucional 86/2015</h4>
+      <p>Tratamento: estados com baixa taxa de execução pré-2016 (mais beneficiados pela impositividade da EC86). DiD coef=−0.00139, p=0.80 — sem efeito detectável. Event study confirma ausência de pre-trend e de quebra pós-2016. <a href="#robustez" style="color:var(--accent)">→ Ver event study</a></p>
+    </div>
+
+    <div class="next-card">
+      <div class="priority priority-done">✅ Realizado · Generalização</div>
+      <h4>7. Regressão de descontinuidade (RDD)</h4>
+      <p>N=15 estados no bandwidth ≤14 cadeiras. Salto no cutoff de 8: emendas=−R$5,6mi/100k (p=0.55), Gini=−0.017 (p=0.69) — ambos n.s. Identificação prejudicada: 11 de 27 estados estão exatamente no mínimo de 8 cadeiras, criando massa no cutoff. <a href="#robustez" style="color:var(--accent)">→ Ver scatter RDD</a></p>
+    </div>
+
+    <div class="next-card">
+      <div class="priority priority-done">✅ Realizado · Modelagem</div>
+      <h4>8. Double/Debiased ML (Chernozhukov et al., 2018)</h4>
+      <p>5-fold cross-fitting com LassoCV (N=243): θ=+0.00103, IC=[−0.004, +0.006], p=0.67 — <strong>não significativo</strong>. OLS mostrava θ=−0.010 (p=0.036) — estava viesiado por confundidores. DML remove o viés: resultado nulo é a estimativa mais confiável. <a href="#robustez" style="color:var(--accent)">→ Ver OLS vs DML</a></p>
+    </div>
+
+  </div>
+
+  <div class="card fade-in" style="margin-top:2rem;background:rgba(108,99,255,.07);border-color:rgba(108,99,255,.3)">
+    <h3 style="color:var(--accent)">💡 A pergunta mais importante que os dados levantam</h3>
+    <p style="margin-top:.5rem">O efeito direto perverso (c' = +0.006, p=0.01) sugere que <strong>a sobre-representação de estados pequenos eleva o Gini por razões além das emendas</strong>. Isso pode refletir: (1) captura política local (elite regional extrai benefícios além das emendas oficiais), (2) distorção alocativa em programas federais fora do escopo das emendas, ou (3) simplesmente características econômicas não observadas. Identificar esse mecanismo direto é a pergunta mais urgente e relevante para políticas públicas.</p>
+  </div>
+</div>
+</section>
+
+<hr class="divider" />
+
+<!-- APROFUNDAMENTO -->
+<section id="aprofundamento">
+<div class="container">
+  <div class="section-header fade-in">
+    <div class="section-tag">🔬 Aprofundamento</div>
+    <h2>Análise por tipo de emenda e variação within-state</h2>
+    <p>Três análises adicionais para testar a robustez e entender os mecanismos: estimador de primeiras diferenças eliminando efeitos fixos de estado, decomposição por função orçamentária e saúde empenhada per capita como proxy de redistributividade direta.</p>
+  </div>
+
+  <!-- FD result + annual growth -->
+  <div class="grid-2 fade-in">
+    <div class="card">
+      <h3>⚡ Estimador within-state (Primeiras Diferenças)</h3>
+      <p style="margin:.5rem 0 .8rem;font-size:.88rem;color:var(--text-muted)">Eliminamos heterogeneidade estadual fixa usando variação ano a ano nas emendas:</p>
+      <p style="font-family:monospace;background:rgba(0,0,0,.3);padding:.55rem .85rem;border-radius:6px;font-size:.82rem;word-break:break-word">ΔGini = α + β · Δlog(emendas) + γ · Δlog(PIB) + C(ano)</p>
+      <div class="stat-row" style="margin-top:1rem">
+        <div class="stat-card">
+          <div class="num" style="font-size:1.4rem;color:var(--yellow)">−0.0033</div>
+          <div class="label">coeficiente β</div>
+        </div>
+        <div class="stat-card">
+          <div class="num" style="font-size:1.4rem;color:var(--text-muted)">p = 0.52</div>
+          <div class="label">não significativo</div>
+        </div>
+        <div class="stat-card">
+          <div class="num" style="font-size:1.4rem">216</div>
+          <div class="label">observações</div>
+        </div>
+      </div>
+      <p style="margin-top:.9rem;font-size:.85rem;color:var(--text-muted)">Sinal negativo (direção esperada), mas a incerteza é alta. Choques anuais de emendas não reduzem o Gini de forma detectável no horizonte de 1 ano — consistente com o resultado principal.</p>
+    </div>
+    <div class="card">
+      <h3>📈 Volume total de emendas (2014–2024)</h3>
+      <canvas id="chartAnnualEmendas" height="200"></canvas>
+      <p style="margin-top:.8rem;font-size:.82rem;color:var(--text-muted)">De R$&nbsp;4,8 bi em 2014 a R$&nbsp;21,6 bi em 2023 (+350%). A queda de 2015 reflete contingenciamento; o salto de 2022–23 reflete as ECs 86/2015 e 100/2019 e as emendas do "orçamento secreto".</p>
+    </div>
+  </div>
+
+  <!-- Funcao share over time -->
+  <div class="card fade-in" style="margin-top:2rem">
+    <h3>🏥 Composição das emendas por função orçamentária (2014–2024)</h3>
+    <p style="margin-bottom:1rem;font-size:.88rem;color:var(--text-muted)">Saúde domina consistentemente (~50–60% do total). Agro/Infra caiu de ~35% em 2017 para &lt;7% em 2023 — reflexo da reorientação para Encargos Especiais (transferências sem vinculação temática).</p>
+    <canvas id="chartFuncaoTime" height="175"></canvas>
+  </div>
+
+  <!-- Funcao regressions + saude scatter -->
+  <div class="grid-2 fade-in" style="margin-top:2rem">
+    <div class="card">
+      <h3>📊 Efeito de cada função no Gini</h3>
+      <p style="margin-bottom:.8rem;font-size:.88rem;color:var(--text-muted)">OLS por macro-função (controles: log PIB, Gini defasado, ano FE, região). Nenhum tipo de emenda tem efeito significativo no Gini estadual.</p>
+      <canvas id="chartFuncaoReg" height="230"></canvas>
+      <p style="margin-top:.7rem;font-size:.8rem;color:var(--text-muted)">Barras tracejadas = IC 95% aprox. Todos os p-valores > 0.35.</p>
+    </div>
+    <div class="card">
+      <h3>⚕️ Emendas de saúde per capita × Gini (2023)</h3>
+      <p style="margin-bottom:.8rem;font-size:.88rem;color:var(--text-muted)">AP e RR recebem 5–8× mais emendas de saúde per capita que SP/RJ, mas seus Ginis são semelhantes ou maiores. Tamanho ∝ representação relativa.</p>
+      <canvas id="chartSaudeGini" height="230"></canvas>
+    </div>
+  </div>
+
+  <!-- Funcao by UF 2023 stacked bar -->
+  <div class="card fade-in" style="margin-top:2rem">
+    <h3>🗺️ Composição das emendas por estado — 2023</h3>
+    <p style="margin-bottom:.9rem;font-size:.88rem;color:var(--text-muted)">"Outros" inclui Encargos Especiais; a dominância de Saúde é generalizada mas varia de 23% (AC) a 63% (AL).</p>
+    <canvas id="chartFuncaoComp2023" height="280"></canvas>
+  </div>
+
+  <div class="card fade-in" style="margin-top:2rem;background:rgba(108,99,255,.07);border-color:rgba(108,99,255,.3)">
+    <h3 style="color:var(--accent)">🔑 Síntese do aprofundamento</h3>
+    <p style="margin-top:.5rem">Ao controlar por efeitos fixos de estado (FD) e ao desagregar por função orçamentária, o resultado é robusto: <strong>não há evidência de que emendas parlamentares reduzam o Gini estadual</strong> via nenhum canal temático. O estimador FD sugere que o mecanismo redistributivo, se existir, opera em <em>escala municipal</em> e com <em>defasagem temporal</em> maior do que a captada pelo painel anual de UFs.</p>
+  </div>
+</div>
+</section>
+
+<hr class="divider" />
+
+<!-- ROBUSTEZ AVANÇADA -->
+<section id="robustez">
+<div class="container">
+  <div class="section-header fade-in">
+    <div class="section-tag">⚗️ Robustez Avançada</div>
+    <h2>Cinco testes adicionais — resultados completos</h2>
+    <p>Análises executadas nos Passos 4–8 da agenda de pesquisa. Em conjunto, confirmam o resultado nulo do painel principal com estratégias de identificação distintas.</p>
+  </div>
+
+  <!-- Step 4: Distributed Lag IRF -->
+  <div class="card fade-in">
+    <h3>⏳ Passo 4 — IRF acumulado (lags distribuídos, N=189)</h3>
+    <p style="margin-bottom:.9rem;font-size:.88rem;color:var(--text-muted)">Modelo: Gini ~ log(emendas)<sub>t</sub> + lag₁ + lag₂ + lag₃ + log(PIB) + UF FE + Ano FE. Barras = coeficiente de cada lag; linha = IRF acumulado. Nenhum lag individualmente p &lt; 0.05, mas sinal negativo se acumula até −0.024 em lag₂.</p>
+    <canvas id="chartIRF" height="160"></canvas>
+  </div>
+
+  <!-- Step 5: SICONFI mediation chain -->
+  <div class="card fade-in" style="margin-top:2rem">
+    <h3>🏥 Passo 5 — Cadeia de mediação fiscal (SICONFI/RREO Anexo 02, N=180)</h3>
+    <p style="margin-bottom:.9rem;font-size:.88rem;color:var(--text-muted)">Testa a cadeia: emendas → gasto estadual (Saúde / Educação) → Gini. Único elo significativo: <strong>gasto em Educação → Gini</strong> (p=0.026). Emendas não predizem gasto em nenhum setor.</p>
+    <canvas id="chartSiconfi" height="175"></canvas>
+    <p style="margin-top:.7rem;font-size:.8rem;color:var(--text-muted)">* p&lt;0.05. Emendas→saúde (p=0.70), Emendas→educação (p=0.19), Saúde→Gini (p=0.39), Educação→Gini (p=0.026*).</p>
+  </div>
+
+  <!-- Step 6: DiD event study | Step 7: RDD scatter -->
+  <div class="grid-2 fade-in" style="margin-top:2rem">
+    <div class="card">
+      <h3>📅 Passo 6 — Event study DiD (EC 86/2015, N=243)</h3>
+      <p style="margin-bottom:.8rem;font-size:.88rem;color:var(--text-muted)">Grupo tratado: estados com baixa taxa de execução pré-2016 (mais afetados pela impositividade). Baseline = 2015. Nenhum coeficiente anual significativo; sem pre-trend nem quebra pós-2016.</p>
+      <canvas id="chartEventStudy" height="220"></canvas>
+    </div>
+    <div class="card">
+      <h3>📐 Passo 7 — RDD no cutoff de 8 cadeiras (N=15)</h3>
+      <p style="margin-bottom:.8rem;font-size:.88rem;color:var(--text-muted)">Emendas per capita vs. cadeiras. Linha vermelha = cutoff mínimo (8 cadeiras). 11 de 27 estados estão exatamente em 8 — massa no cutoff impede identificação local limpa.</p>
+      <canvas id="chartRDD" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- Step 8: DML vs OLS -->
+  <div class="card fade-in" style="margin-top:2rem">
+    <h3>🤖 Passo 8 — Double/Debiased ML vs OLS (N=243)</h3>
+    <p style="margin-bottom:.9rem;font-size:.88rem;color:var(--text-muted)">DML remove viés de confundidores via Lasso cross-fitting. OLS mostrava efeito negativo espúrio (−0.010, p=0.036) — capturava correlação entre sub-representação e menor Gini dos estados grandes. DML: θ=+0.001, IC=[−0.004, +0.006], p=0.67.</p>
+    <canvas id="chartDML" height="130"></canvas>
+    <p style="margin-top:.7rem;font-size:.8rem;color:var(--text-muted)">Barras = estimativa pontual; linhas finas = IC 95%. OLS estava viesiado porque estados grandes (SP, MG, RJ) são sub-representados E tendem a ter Gini mais baixo por razões históricas independentes das emendas.</p>
+  </div>
+
+  <div class="card fade-in" style="margin-top:2rem;background:rgba(108,99,255,.07);border-color:rgba(108,99,255,.3)">
+    <h3 style="color:var(--accent)">🔑 Síntese dos cinco testes</h3>
+    <p style="margin-top:.5rem">Através de cinco estratégias de identificação distintas — lags distribuídos, mediação fiscal, DiD, RDD e DML — nenhuma produz evidência de que emendas parlamentares reduzem o Gini estadual de forma detectável. O único elo significativo é <strong>gasto em educação → Gini</strong> (p=0.026), sugerindo que o canal redistributivo pode existir via política fiscal, mas as emendas, per se, não alcançam esse canal na escala estadual analisada.</p>
+  </div>
+</div>
+</section>
+
+<hr class="divider" />
+
+<!-- METODOLOGIA -->
+<section>
+<div class="container">
+  <div class="section-header fade-in">
+    <div class="section-tag">🔧 Metodologia</div>
+    <h2>Como foi feita esta análise</h2>
+  </div>
+  <div class="steps fade-in">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Dados de representação (TSE / Câmara dos Deputados)</h4>
+        <p>Composição atual da Câmara com 27 UFs × cadeiras fixas por legislatura. Representação relativa = (cadeiras_i / 513) / (pop_i / pop_br), usando o Censo 2022 (IBGE).</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Emendas parlamentares — Portal da Transparência</h4>
+        <p>API pública do governo federal. 6.110+ registros por ano, paginação de 15/página. Coletados todos os anos de 2014 a 2024. Usou-se <strong>valor empenhado</strong> (comprometido) em vez de pago, pois em 2014 apenas 1.85% das emendas foram liquidadas no mesmo exercício.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Gini estadual — IPEADATA (PNADCA_GINIUF)</h4>
+        <p>Série de Gini da PNAD Contínua por UF via API IPEADATA OData. Cobertura 2012–2025, 27 estados. Tentativa de uso do IBGE SIDRA não foi possível (API retorna apenas metadados de pesquisas, não IDs de tabelas individuais).</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h4>PIB per capita estadual — IPEADATA (PIBPCE)</h4>
+        <p>Série em preços de 2010 das Contas Regionais IBGE, via IPEADATA. Usado em log como controle de nível de desenvolvimento no modelo.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <h4>Análise causal — Baron & Kenny + IV + DiD</h4>
+        <p>Painel balanceado com controles de ano fixo (ano FE via C(ano)) e região. Erros padrão robustos HC3. Bootstrap com 2.000 replicações para IC do efeito indireto. Código em Python (statsmodels) disponível no repositório.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<hr class="divider" />
+
+<!-- REFERÊNCIAS -->
+<section>
+<div class="container">
+  <div class="section-header fade-in">
+    <div class="section-tag">📚 Referências</div>
+    <h2>Literatura e fontes de dados</h2>
+    <p>Fundamentos metodológicos e todas as fontes utilizadas nesta análise.</p>
+  </div>
+  <div class="steps fade-in">
+    <div class="step">
+      <div class="step-num" style="min-width:2.5rem;font-size:.85rem">A</div>
+      <div class="step-body">
+        <h4>Metodologia de mediação (Baron &amp; Kenny, 1986)</h4>
+        <p>Baron, R. M., &amp; Kenny, D. A. (1986). The moderator–mediator variable distinction in social psychological research. <em>Journal of Personality and Social Psychology</em>, 51(6), 1173–1182. <a href="https://doi.org/10.1037/0022-3514.51.6.1173" target="_blank" rel="noopener" style="color:var(--accent)">doi:10.1037/0022-3514.51.6.1173</a></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="min-width:2.5rem;font-size:.85rem">B</div>
+      <div class="step-body">
+        <h4>Double/Debiased Machine Learning (Chernozhukov et al., 2018)</h4>
+        <p>Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., &amp; Robins, J. (2018). Double/debiased machine learning for treatment and structural parameters. <em>The Econometrics Journal</em>, 21(1), C1–C68. <a href="https://doi.org/10.1111/ectj.12097" target="_blank" rel="noopener" style="color:var(--accent)">doi:10.1111/ectj.12097</a></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="min-width:2.5rem;font-size:.85rem">C</div>
+      <div class="step-body">
+        <h4>DAGs e inferência causal (Pearl, 2009)</h4>
+        <p>Pearl, J. (2009). <em>Causality: Models, Reasoning, and Inference</em> (2nd ed.). Cambridge University Press. — Fundamento para Grafos Acíclicos Direcionados e o modelo de mediação causal formal.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="min-width:2.5rem;font-size:.85rem">D</div>
+      <div class="step-body">
+        <h4>Desproporcionalidade eleitoral (Samuels &amp; Snyder, 2001)</h4>
+        <p>Samuels, D., &amp; Snyder, R. (2001). The value of a vote: Malapportionment in comparative perspective. <em>British Journal of Political Science</em>, 31(4), 651–671. <a href="https://doi.org/10.1017/S0007123401000254" target="_blank" rel="noopener" style="color:var(--accent)">doi:10.1017/S0007123401000254</a> — Demonstra que a desproporcionalidade típica do sistema brasileiro beneficia regiões rurais e menos desenvolvidas.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="min-width:2.5rem;font-size:.85rem">E</div>
+      <div class="step-body">
+        <h4>Base legal — emendas impositivas</h4>
+        <p>
+          <a href="https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc086.htm" target="_blank" rel="noopener" style="color:var(--accent)">Emenda Constitucional nº 86/2015</a> — torna obrigatória a execução de emendas individuais (mínimo 1,2% da RCL).<br>
+          <a href="https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc100.htm" target="_blank" rel="noopener" style="color:var(--accent)">Emenda Constitucional nº 100/2019</a> — amplia obrigatoriedade para emendas de bancada estadual.
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="min-width:2.5rem;font-size:.85rem">F</div>
+      <div class="step-body">
+        <h4>Fontes de dados utilizadas</h4>
+        <p>
+          <a href="https://portaldatransparencia.gov.br/emendas" target="_blank" rel="noopener" style="color:var(--accent)">Portal da Transparência — Emendas Parlamentares</a> (API pública, valor empenhado, 2014–2024) ·
+          <a href="http://www.ipeadata.gov.br/ExibeSerie.aspx?serid=PNADCA_GINIUF" target="_blank" rel="noopener" style="color:var(--accent)">IPEADATA — PNADCA_GINIUF</a> (Gini PNAD Contínua por UF) ·
+          <a href="http://www.ipeadata.gov.br/ExibeSerie.aspx?serid=PIBPCE" target="_blank" rel="noopener" style="color:var(--accent)">IPEADATA — PIBPCE</a> (PIB per capita estadual) ·
+          <a href="https://apidatalake.tesouro.gov.br/docs/siconfi/" target="_blank" rel="noopener" style="color:var(--accent)">SICONFI/Tesouro Nacional</a> (RREO Anexo 02 — gasto estadual em Saúde e Educação, 2018–2023) ·
+          <a href="https://www.ibge.gov.br/estatisticas/sociais/populacao/9662-censo-demografico-2022.html" target="_blank" rel="noopener" style="color:var(--accent)">IBGE Censo 2022</a> (populações estaduais).
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="min-width:2.5rem;font-size:.85rem">G</div>
+      <div class="step-body">
+        <h4>Código-fonte e reprodutibilidade</h4>
+        <p>Análise em Python 3.10 (pandas, statsmodels, scikit-learn). Reprodutível a partir dos notebooks disponíveis em <a href="https://github.com/CaioMar/politicas-publicas" target="_blank" rel="noopener" style="color:var(--accent)">github.com/CaioMar/politicas-publicas</a>. Dados coletados via APIs públicas documentadas acima.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<footer>
+    <a href="https://portaldatransparencia.gov.br" target="_blank" rel="noopener">Portal da Transparência</a> (emendas 2014–2024),
+    <a href="http://www.ipeadata.gov.br" target="_blank" rel="noopener">IPEADATA</a> (Gini PNAD Contínua — série <code style="font-size:.8em">PNADCA_GINIUF</code> — e PIB per capita — série <code style="font-size:.8em">PIBPCE</code>),
+    <a href="https://www.ibge.gov.br" target="_blank" rel="noopener">IBGE</a> (Censo 2022, populações estaduais) e a
+    <a href="https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm" target="_blank" rel="noopener">Constituição Federal de 1988</a> (art.&nbsp;45, ECs 86/2015 e 100/2019).
+  </p>
+  <p style="margin-top:.5rem;color:var(--text-muted);font-size:.82rem">
+    API emendas: <a href="https://api.portaldatransparencia.gov.br/swagger-ui/index.html" target="_blank" rel="noopener">api.portaldatransparencia.gov.br</a> ·
+    Gini estadual: <a href="http://www.ipeadata.gov.br/ExibeSerie.aspx?serid=PNADCA_GINIUF" target="_blank" rel="noopener">IPEADATA PNADCA_GINIUF</a> ·
+    PIB per capita: <a href="http://www.ipeadata.gov.br/ExibeSerie.aspx?serid=PIBPCE" target="_blank" rel="noopener">IPEADATA PIBPCE</a> ·
+    PNAD Contínua: <a href="https://www.ibge.gov.br/estatisticas/sociais/trabalho/17270-pnad-continua.html" target="_blank" rel="noopener">ibge.gov.br</a>
+  </p>
+  <p style="margin-top:.4rem;color:var(--text-muted)">Código em Python (pandas, statsmodels) · Painel 2014–2024 · 27 UFs · 243 observações (amostra completa)</p>
+</footer>
+
+<script>
+// ===== DATA =====
+const SCATTER_TM = [{"uf":"AC","x":3.867,"y":50.5,"gini":0.51,"regiao":"Norte"},{"uf":"AL","x":1.082,"y":15.33,"gini":0.486,"regiao":"Nordeste"},{"uf":"AM","x":0.752,"y":14.11,"gini":0.511,"regiao":"Norte"},{"uf":"AP","x":3.795,"y":58.93,"gini":0.491,"regiao":"Norte"},{"uf":"BA","x":1.107,"y":10.0,"gini":0.485,"regiao":"Nordeste"},{"uf":"CE","x":0.955,"y":9.09,"gini":0.51,"regiao":"Nordeste"},{"uf":"DF","x":1.139,"y":17.24,"gini":0.542,"regiao":"Centro-Oeste"},{"uf":"ES","x":0.977,"y":14.07,"gini":0.483,"regiao":"Sudeste"},{"uf":"GO","x":0.946,"y":11.0,"gini":0.472,"regiao":"Centro-Oeste"},{"uf":"MA","x":1.066,"y":12.64,"gini":0.491,"regiao":"Nordeste"},{"uf":"MG","x":1.035,"y":9.03,"gini":0.474,"regiao":"Sudeste"},{"uf":"MS","x":1.133,"y":14.05,"gini":0.476,"regiao":"Centro-Oeste"},{"uf":"MT","x":0.877,"y":12.32,"gini":0.453,"regiao":"Centro-Oeste"},{"uf":"PA","x":0.84,"y":10.71,"gini":0.499,"regiao":"Norte"},{"uf":"PB","x":1.186,"y":18.4,"gini":0.561,"regiao":"Nordeste"},{"uf":"PE","x":1.037,"y":11.36,"gini":0.495,"regiao":"Nordeste"},{"uf":"PI","x":1.227,"y":21.26,"gini":0.549,"regiao":"Nordeste"},{"uf":"PR","x":1.052,"y":10.64,"gini":0.461,"regiao":"Sul"},{"uf":"RJ","x":1.15,"y":6.39,"gini":0.539,"regiao":"Sudeste"},{"uf":"RN","x":0.972,"y":18.8,"gini":0.53,"regiao":"Nordeste"},{"uf":"RO","x":1.768,"y":23.68,"gini":0.454,"regiao":"Norte"},{"uf":"RR","x":5.041,"y":49.28,"gini":0.521,"regiao":"Norte"},{"uf":"RS","x":1.143,"y":10.24,"gini":0.465,"regiao":"Sul"},{"uf":"SC","x":0.844,"y":10.04,"gini":0.418,"regiao":"Sul"},{"uf":"SE","x":1.373,"y":19.78,"gini":0.503,"regiao":"Nordeste"},{"uf":"SP","x":0.632,"y":4.7,"gini":0.503,"regiao":"Sudeste"},{"uf":"TO","x":1.997,"y":28.83,"gini":0.478,"regiao":"Norte"}];
+
+const BAR_EMENDAS = [{"uf":"AP","emendas_m":58.93},{"uf":"AC","emendas_m":50.5},{"uf":"RR","emendas_m":49.28},{"uf":"TO","emendas_m":28.83},{"uf":"RO","emendas_m":23.68},{"uf":"PI","emendas_m":21.26},{"uf":"SE","emendas_m":19.78},{"uf":"RN","emendas_m":18.8},{"uf":"PB","emendas_m":18.4},{"uf":"DF","emendas_m":17.24},{"uf":"AL","emendas_m":15.33},{"uf":"AM","emendas_m":14.11},{"uf":"ES","emendas_m":14.07},{"uf":"MS","emendas_m":14.05},{"uf":"MA","emendas_m":12.64},{"uf":"MT","emendas_m":12.32},{"uf":"PE","emendas_m":11.36},{"uf":"GO","emendas_m":11.0},{"uf":"PA","emendas_m":10.71},{"uf":"PR","emendas_m":10.64},{"uf":"RS","emendas_m":10.24},{"uf":"SC","emendas_m":10.04},{"uf":"BA","emendas_m":10.0},{"uf":"CE","emendas_m":9.09},{"uf":"MG","emendas_m":9.03},{"uf":"RJ","emendas_m":6.39},{"uf":"SP","emendas_m":4.7}];
+
+const LINE_ANOS = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024];
+const LINE_SERIES = {"Sub-representado (<1x)":[2.3,0.83,4.1,4.35,4.08,3.81,6.41,6.94,6.99,11.65,10.17],"Proporcional (1–1.5x)":[2.69,1.04,4.78,4.72,5.36,4.3,6.85,7.03,7.79,13.56,11.13],"Super-representado (>1.5x)":[8.25,2.73,15.68,22.15,14.69,15.95,22.81,25.49,25.19,42.24,38.44]};
+
+const GINI_ANOS = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024];
+const GINI_SERIES = {"Sub (<1x)":[0.493,0.494,0.503,0.506,0.51,0.511,0.488,0.511,0.485,0.487,0.475],"Prop (1–1.5x)":[0.513,0.511,0.522,0.527,0.53,0.531,0.503,0.529,0.505,0.502,0.492],"Super (>1.5x)":[0.503,0.521,0.522,0.521,0.54,0.531,0.496,0.528,0.511,0.491,0.492]};
+
+const SCATTER_MY = [{"uf":"AC","x":50.5,"y":0.51,"rep":3.87},{"uf":"AL","x":15.33,"y":0.486,"rep":1.08},{"uf":"AM","x":14.11,"y":0.511,"rep":0.75},{"uf":"AP","x":58.93,"y":0.491,"rep":3.8},{"uf":"BA","x":10.0,"y":0.485,"rep":1.11},{"uf":"CE","x":9.09,"y":0.51,"rep":0.96},{"uf":"DF","x":17.24,"y":0.542,"rep":1.14},{"uf":"ES","x":14.07,"y":0.483,"rep":0.98},{"uf":"GO","x":11.0,"y":0.472,"rep":0.95},{"uf":"MA","x":12.64,"y":0.491,"rep":1.07},{"uf":"MG","x":9.03,"y":0.474,"rep":1.04},{"uf":"MS","x":14.05,"y":0.476,"rep":1.13},{"uf":"MT","x":12.32,"y":0.453,"rep":0.88},{"uf":"PA","x":10.71,"y":0.499,"rep":0.84},{"uf":"PB","x":18.4,"y":0.561,"rep":1.19},{"uf":"PE","x":11.36,"y":0.495,"rep":1.04},{"uf":"PI","x":21.26,"y":0.549,"rep":1.23},{"uf":"PR","x":10.64,"y":0.461,"rep":1.05},{"uf":"RJ","x":6.39,"y":0.539,"rep":1.15},{"uf":"RN","x":18.8,"y":0.53,"rep":0.97},{"uf":"RO","x":23.68,"y":0.454,"rep":1.77},{"uf":"RR","x":49.28,"y":0.521,"rep":5.04},{"uf":"RS","x":10.24,"y":0.465,"rep":1.14},{"uf":"SC","x":10.04,"y":0.418,"rep":0.84},{"uf":"SE","x":19.78,"y":0.503,"rep":1.37},{"uf":"SP","x":4.7,"y":0.503,"rep":0.63},{"uf":"TO","x":28.83,"y":0.478,"rep":2.0}];
+
+const ANNUAL_EMENDAS = [{"ano":2014,"emendas_bi":4.76},{"ano":2015,"emendas_bi":1.63},{"ano":2016,"emendas_bi":8.71},{"ano":2017,"emendas_bi":7.91},{"ano":2018,"emendas_bi":8.4},{"ano":2019,"emendas_bi":6.67},{"ano":2020,"emendas_bi":10.55},{"ano":2021,"emendas_bi":11.28},{"ano":2022,"emendas_bi":12.5},{"ano":2023,"emendas_bi":21.61},{"ano":2024,"emendas_bi":17.56}];
+
+const FUNCAO_YEAR_SHARE = [{"ano":2014,"Agro/Infra":29.2,"Educação":3.0,"Outros":18.1,"Saúde":48.2,"Social":1.5},{"ano":2015,"Agro/Infra":26.9,"Educação":2.8,"Outros":10.7,"Saúde":58.0,"Social":1.6},{"ano":2016,"Agro/Infra":24.8,"Educação":3.1,"Outros":8.4,"Saúde":61.0,"Social":2.7},{"ano":2017,"Agro/Infra":35.2,"Educação":3.6,"Outros":10.8,"Saúde":49.7,"Social":0.6},{"ano":2018,"Agro/Infra":33.1,"Educação":4.3,"Outros":12.6,"Saúde":48.8,"Social":1.2},{"ano":2019,"Agro/Infra":18.6,"Educação":13.6,"Outros":11.9,"Saúde":54.6,"Social":1.3},{"ano":2020,"Agro/Infra":20.0,"Educação":7.5,"Outros":10.3,"Saúde":60.0,"Social":2.1},{"ano":2021,"Agro/Infra":18.9,"Educação":6.4,"Outros":19.1,"Saúde":53.5,"Social":2.1},{"ano":2022,"Agro/Infra":8.2,"Educação":4.1,"Outros":23.0,"Saúde":61.5,"Social":3.2},{"ano":2023,"Agro/Infra":6.2,"Educação":3.8,"Outros":31.5,"Saúde":55.0,"Social":3.5},{"ano":2024,"Agro/Infra":5.2,"Educação":2.6,"Outros":33.3,"Saúde":56.4,"Social":2.4}];
+
+const FUNCAO_REG = {"Saúde":{"coef":-0.00222,"p":0.482},"Educação":{"coef":0.00069,"p":0.438},"Social":{"coef":-0.00057,"p":0.358},"Agro/Infra":{"coef":-0.00124,"p":0.368},"Outros":{"coef":-0.00022,"p":0.877}};
+
+const FUNCAO_COMP_2023 = [{"uf":"AC","Agro/Infra":8.6,"Educação":4.9,"Outros":59.3,"Saúde":23.8,"Social":3.5},{"uf":"AL","Agro/Infra":9.1,"Educação":0.5,"Outros":25.4,"Saúde":63.4,"Social":1.6},{"uf":"AM","Agro/Infra":5.2,"Educação":4.3,"Outros":20.2,"Saúde":52.8,"Social":17.6},{"uf":"AP","Agro/Infra":5.1,"Educação":3.7,"Outros":23.3,"Saúde":63.9,"Social":3.9},{"uf":"BA","Agro/Infra":2.3,"Educação":4.8,"Outros":32.9,"Saúde":55.6,"Social":4.4},{"uf":"CE","Agro/Infra":3.3,"Educação":3.9,"Outros":27.8,"Saúde":62.5,"Social":2.5},{"uf":"DF","Agro/Infra":2.3,"Educação":3.9,"Outros":38.4,"Saúde":52.6,"Social":2.7},{"uf":"ES","Agro/Infra":12.7,"Educação":6.3,"Outros":21.7,"Saúde":56.7,"Social":2.6},{"uf":"GO","Agro/Infra":11.2,"Educação":3.4,"Outros":29.2,"Saúde":55.0,"Social":1.2},{"uf":"MA","Agro/Infra":5.5,"Educação":3.3,"Outros":18.2,"Saúde":70.1,"Social":2.9},{"uf":"MG","Agro/Infra":5.8,"Educação":3.5,"Outros":32.0,"Saúde":55.3,"Social":3.4},{"uf":"MS","Agro/Infra":8.5,"Educação":3.9,"Outros":34.0,"Saúde":51.0,"Social":2.6},{"uf":"MT","Agro/Infra":12.3,"Educação":2.7,"Outros":22.5,"Saúde":60.0,"Social":2.5},{"uf":"PA","Agro/Infra":7.9,"Educação":3.0,"Outros":23.5,"Saúde":62.3,"Social":3.2},{"uf":"PB","Agro/Infra":4.0,"Educação":2.7,"Outros":26.5,"Saúde":64.5,"Social":2.4},{"uf":"PE","Agro/Infra":4.7,"Educação":3.7,"Outros":20.3,"Saúde":68.5,"Social":2.8},{"uf":"PI","Agro/Infra":4.0,"Educação":6.3,"Outros":15.5,"Saúde":71.1,"Social":3.1},{"uf":"PR","Agro/Infra":8.3,"Educação":4.3,"Outros":32.4,"Saúde":51.3,"Social":3.7},{"uf":"RJ","Agro/Infra":0.8,"Educação":3.7,"Outros":44.7,"Saúde":48.7,"Social":2.1},{"uf":"RN","Agro/Infra":5.8,"Educação":4.7,"Outros":22.5,"Saúde":64.2,"Social":2.8},{"uf":"RO","Agro/Infra":10.3,"Educação":3.8,"Outros":16.4,"Saúde":67.0,"Social":2.5},{"uf":"RR","Agro/Infra":8.8,"Educação":5.2,"Outros":25.5,"Saúde":56.3,"Social":4.2},{"uf":"RS","Agro/Infra":5.5,"Educação":4.1,"Outros":32.0,"Saúde":55.2,"Social":3.2},{"uf":"SC","Agro/Infra":6.2,"Educação":3.8,"Outros":31.4,"Saúde":55.6,"Social":3.0},{"uf":"SE","Agro/Infra":3.8,"Educação":2.9,"Outros":19.4,"Saúde":71.4,"Social":2.4},{"uf":"SP","Agro/Infra":2.0,"Educação":3.4,"Outros":50.2,"Saúde":41.8,"Social":2.6},{"uf":"TO","Agro/Infra":9.6,"Educação":4.2,"Outros":22.5,"Saúde":57.9,"Social":5.8}];
+
+const SCATTER_SAUDE_GINI = [{"uf":"AP","x":248.9,"y":0.491,"rep":3.8},{"uf":"RR","x":233.4,"y":0.521,"rep":5.04},{"uf":"TO","x":152.6,"y":0.478,"rep":2.0},{"uf":"AC","x":120.3,"y":0.51,"rep":3.87},{"uf":"PI","x":119.9,"y":0.549,"rep":1.23},{"uf":"DF","x":106.4,"y":0.542,"rep":1.14},{"uf":"RN","x":103.4,"y":0.53,"rep":0.97},{"uf":"SE","x":101.7,"y":0.503,"rep":1.37},{"uf":"PB","x":101.0,"y":0.561,"rep":1.19},{"uf":"AL","x":97.2,"y":0.486,"rep":1.08},{"uf":"RO","x":94.8,"y":0.454,"rep":1.77},{"uf":"MA","x":77.0,"y":0.491,"rep":1.07},{"uf":"AM","x":74.5,"y":0.511,"rep":0.75},{"uf":"ES","x":73.5,"y":0.483,"rep":0.98},{"uf":"MS","x":73.3,"y":0.476,"rep":1.13},{"uf":"PA","x":73.1,"y":0.499,"rep":0.84},{"uf":"PE","x":65.9,"y":0.495,"rep":1.04},{"uf":"CE","x":64.2,"y":0.51,"rep":0.96},{"uf":"SC","x":63.8,"y":0.418,"rep":0.84},{"uf":"MT","x":57.2,"y":0.453,"rep":0.88},{"uf":"RS","x":55.8,"y":0.465,"rep":1.14},{"uf":"GO","x":55.3,"y":0.472,"rep":0.95},{"uf":"PR","x":52.4,"y":0.461,"rep":1.05},{"uf":"MG","x":50.3,"y":0.474,"rep":1.04},{"uf":"BA","x":47.6,"y":0.485,"rep":1.11},{"uf":"RJ","x":30.1,"y":0.539,"rep":1.15},{"uf":"SP","x":30.0,"y":0.503,"rep":0.63}];
+
+const SEATS_TABLE_DATA = [{"uf":"SP","rep":0.63,"emendas_m":4.7,"gini":0.503,"cadeiras":70},{"uf":"AM","rep":0.75,"emendas_m":14.1,"gini":0.511,"cadeiras":8},{"uf":"PA","rep":0.84,"emendas_m":10.7,"gini":0.499,"cadeiras":17},{"uf":"SC","rep":0.84,"emendas_m":10.0,"gini":0.418,"cadeiras":16},{"uf":"MT","rep":0.88,"emendas_m":12.3,"gini":0.453,"cadeiras":8},{"uf":"GO","rep":0.95,"emendas_m":11.0,"gini":0.472,"cadeiras":17},{"uf":"CE","rep":0.96,"emendas_m":9.1,"gini":0.51,"cadeiras":22},{"uf":"RN","rep":0.97,"emendas_m":18.8,"gini":0.53,"cadeiras":8},{"uf":"ES","rep":0.98,"emendas_m":14.1,"gini":0.483,"cadeiras":10},{"uf":"MG","rep":1.04,"emendas_m":9.0,"gini":0.474,"cadeiras":53},{"uf":"PE","rep":1.04,"emendas_m":11.4,"gini":0.495,"cadeiras":25},{"uf":"PR","rep":1.05,"emendas_m":10.6,"gini":0.461,"cadeiras":30},{"uf":"MA","rep":1.07,"emendas_m":12.6,"gini":0.491,"cadeiras":18},{"uf":"AL","rep":1.08,"emendas_m":15.3,"gini":0.486,"cadeiras":9},{"uf":"BA","rep":1.11,"emendas_m":10.0,"gini":0.485,"cadeiras":39},{"uf":"MS","rep":1.13,"emendas_m":14.0,"gini":0.476,"cadeiras":8},{"uf":"DF","rep":1.14,"emendas_m":17.2,"gini":0.542,"cadeiras":8},{"uf":"RS","rep":1.14,"emendas_m":10.2,"gini":0.465,"cadeiras":31},{"uf":"RJ","rep":1.15,"emendas_m":6.4,"gini":0.539,"cadeiras":46},{"uf":"PB","rep":1.19,"emendas_m":18.4,"gini":0.561,"cadeiras":12},{"uf":"PI","rep":1.23,"emendas_m":21.3,"gini":0.549,"cadeiras":10},{"uf":"SE","rep":1.37,"emendas_m":19.8,"gini":0.503,"cadeiras":8},{"uf":"RO","rep":1.77,"emendas_m":23.7,"gini":0.454,"cadeiras":8},{"uf":"TO","rep":2.0,"emendas_m":28.8,"gini":0.478,"cadeiras":8},{"uf":"AP","rep":3.8,"emendas_m":58.9,"gini":0.491,"cadeiras":8},{"uf":"AC","rep":3.87,"emendas_m":50.5,"gini":0.51,"cadeiras":8},{"uf":"RR","rep":5.04,"emendas_m":49.3,"gini":0.521,"cadeiras":8}];
+
+// ===== CHART DEFAULTS =====
+Chart.defaults.color = '#8892a4';
+Chart.defaults.borderColor = '#2d3148';
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+
+const regionColors = {
+  'Norte': '#6c63ff', 'Nordeste': '#f87171', 'Centro-Oeste': '#fbbf24',
+  'Sudeste': '#43d9ad', 'Sul': '#38bdf8'
+};
+
+// ===== SCATTER T→M =====
+new Chart(document.getElementById('chartScatterTM'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: 'Estados',
+      data: SCATTER_TM.map(d => ({ x: d.x, y: d.y, uf: d.uf, regiao: d.regiao, gini: d.gini })),
+      backgroundColor: SCATTER_TM.map(d => regionColors[d.regiao] + 'bb'),
+      borderColor: SCATTER_TM.map(d => regionColors[d.regiao]),
+      pointRadius: SCATTER_TM.map(d => 5 + d.gini * 12),
+      pointHoverRadius: SCATTER_TM.map(d => 7 + d.gini * 14),
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const d = ctx.raw;
+            return [`${d.uf} (${d.regiao})`, `Representação: ${d.x}×`, `Emendas: R$${d.y}mi/100k`, `Gini: ${d.gini}`];
+          }
+        }
+      }
+    },
+    scales: {
+      x: { title: { display: true, text: 'Representação Relativa (1.0 = proporcional)' } },
+      y: { title: { display: true, text: 'Emendas per capita (R$ mi / 100k hab)' } }
+    }
+  }
+});
+
+// ===== BAR EMENDAS =====
+new Chart(document.getElementById('chartBarEmendas'), {
+  type: 'bar',
+  data: {
+    labels: BAR_EMENDAS.map(d => d.uf),
+    datasets: [{
+      label: 'R$ mi / 100k hab',
+      data: BAR_EMENDAS.map(d => d.emendas_m),
+      backgroundColor: BAR_EMENDAS.map(d => {
+        if (d.emendas_m >= 40) return '#6c63ff';
+        if (d.emendas_m >= 20) return '#a78bfa';
+        if (d.emendas_m >= 10) return '#7c86b0';
+        return '#4a5068';
+      }),
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { title: { display: true, text: 'R$ mi / 100k hab' } },
+      y: { ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+// ===== LINE EMENDAS =====
+const lineColors = ['#4a5068', '#a78bfa', '#6c63ff'];
+const lineKeys = Object.keys(LINE_SERIES);
+new Chart(document.getElementById('chartLineEmendas'), {
+  type: 'line',
+  data: {
+    labels: LINE_ANOS,
+    datasets: lineKeys.map((k, i) => ({
+      label: k,
+      data: LINE_SERIES[k],
+      borderColor: lineColors[i],
+      backgroundColor: lineColors[i] + '22',
+      borderWidth: i === 2 ? 3 : 2,
+      tension: 0.3,
+      fill: i === 2,
+      pointRadius: 4,
+    }))
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+    scales: {
+      y: { title: { display: true, text: 'Emendas per capita (R$ mi / 100k hab)' } }
+    }
+  }
+});
+
+// ===== LINE GINI =====
+const giniColors = ['#38bdf8', '#a78bfa', '#6c63ff'];
+const giniKeys = Object.keys(GINI_SERIES);
+new Chart(document.getElementById('chartLineGini'), {
+  type: 'line',
+  data: {
+    labels: GINI_ANOS,
+    datasets: giniKeys.map((k, i) => ({
+      label: k,
+      data: GINI_SERIES[k],
+      borderColor: giniColors[i],
+      backgroundColor: giniColors[i] + '22',
+      borderWidth: i === 2 ? 3 : 2,
+      tension: 0.3,
+      pointRadius: 4,
+    }))
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+    scales: {
+      y: {
+        title: { display: true, text: 'Gini médio do grupo' },
+        min: 0.46, max: 0.55
+      }
+    }
+  }
+});
+
+// ===== MEDIATION DECOMP BAR =====
+new Chart(document.getElementById('chartMedDecomp'), {
+  type: 'bar',
+  data: {
+    labels: ['Efeito indireto\n(via emendas)', 'Efeito direto\n(T→Y)', 'Efeito total\n(observado)'],
+    datasets: [{
+      label: 'Coeficiente (Gini)',
+      data: [-0.003108, 0.00584, 0.00273],
+      backgroundColor: ['#43d9ad44', '#f8717144', '#6c63ff44'],
+      borderColor: ['#43d9ad', '#f87171', '#6c63ff'],
+      borderWidth: 2,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const v = ctx.raw;
+            const dir = v < 0 ? 'Reduz desigualdade' : 'Aumenta desigualdade';
+            return [`${dir}: ${v > 0 ? '+' : ''}${v.toFixed(5)}`];
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        title: { display: true, text: 'Δ Gini por unidade de tratamento' },
+        grid: { color: '#2d3148' }
+      }
+    }
+  }
+});
+
+// ===== SCATTER M→Y =====
+new Chart(document.getElementById('chartScatterMY'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: 'Estados',
+      data: SCATTER_MY.map(d => ({ x: d.x, y: d.y, uf: d.uf, rep: d.rep })),
+      backgroundColor: SCATTER_MY.map(d => {
+        if (d.rep >= 2) return '#6c63ffbb';
+        if (d.rep >= 1.2) return '#a78bfabb';
+        return '#4a5068bb';
+      }),
+      borderColor: SCATTER_MY.map(d => {
+        if (d.rep >= 2) return '#6c63ff';
+        if (d.rep >= 1.2) return '#a78bfa';
+        return '#4a5068';
+      }),
+      pointRadius: 7,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const d = ctx.raw;
+            return [`${d.uf}  Rep: ${d.rep}×`, `Emendas: R$${d.x}mi/100k  Gini: ${d.y}`];
+          }
+        }
+      }
+    },
+    scales: {
+      x: { title: { display: true, text: 'Emendas per capita (R$ mi / 100k hab)' } },
+      y: { title: { display: true, text: 'Gini' }, min: 0.40, max: 0.58 }
+    }
+  }
+});
+
+// ===== TABLE =====
+(function buildTable() {
+  const tbl = document.getElementById('seatsTable');
+  tbl.innerHTML = `<thead><tr>
+    <th>UF</th>
+    <th>Representação relativa</th>
+    <th>Cadeiras</th>
+    <th>Emendas 2023 (R$ mi/100k)</th>
+    <th>Gini 2023</th>
+    <th>Status</th>
+  </tr></thead>`;
+  const tbody = document.createElement('tbody');
+  SEATS_TABLE_DATA.forEach(d => {
+    const status = d.rep < 0.9 ? ['pill pill-red', 'Sub-representado'] :
+                   d.rep > 1.5 ? ['pill pill-blue', 'Super-representado'] :
+                   ['pill pill-yellow', 'Proporcional'];
+    const giniClass = d.gini < 0.47 ? 'color:var(--green)' : d.gini > 0.53 ? 'color:var(--red)' : 'color:var(--yellow)';
+    tbody.innerHTML += `<tr>
+      <td><strong>${d.uf}</strong></td>
+      <td>${d.rep}×</td>
+      <td>${d.cadeiras}</td>
+      <td>${d.emendas_m}</td>
+      <td style="${giniClass}">${d.gini}</td>
+      <td><span class="${status[0]}">${status[1]}</span></td>
+    </tr>`;
+  });
+  tbl.appendChild(tbody);
+})();
+
+// ===== ANNUAL EMENDAS LINE =====
+new Chart(document.getElementById('chartAnnualEmendas'), {
+  type: 'bar',
+  data: {
+    labels: ANNUAL_EMENDAS.map(d => d.ano),
+    datasets: [{
+      label: 'R$ bilhões',
+      data: ANNUAL_EMENDAS.map(d => d.emendas_bi),
+      backgroundColor: ANNUAL_EMENDAS.map(d =>
+        d.emendas_bi >= 20 ? '#6c63ff' : d.emendas_bi >= 10 ? '#a78bfa' : '#4a5068'
+      ),
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { title: { display: true, text: 'R$ bilhões (empenhado)' }, beginAtZero: true }
+    }
+  }
+});
+
+// ===== FUNCAO OVER TIME STACKED BAR =====
+(function() {
+  const funcaoColors = {
+    'Saúde': '#f87171', 'Educação': '#fbbf24', 'Agro/Infra': '#43d9ad',
+    'Social': '#38bdf8', 'Outros': '#6c63ff'
+  };
+  const funcaoKeys = ['Saúde', 'Agro/Infra', 'Outros', 'Educação', 'Social'];
+  new Chart(document.getElementById('chartFuncaoTime'), {
+    type: 'bar',
+    data: {
+      labels: FUNCAO_YEAR_SHARE.map(d => d.ano),
+      datasets: funcaoKeys.map(k => ({
+        label: k,
+        data: FUNCAO_YEAR_SHARE.map(d => d[k]),
+        backgroundColor: funcaoColors[k] + 'cc',
+        borderColor: funcaoColors[k],
+        borderWidth: 0,
+      }))
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw}%` } }
+      },
+      scales: {
+        x: { stacked: true },
+        y: { stacked: true, max: 100, title: { display: true, text: '% do total empenhado' } }
+      }
+    }
+  });
+})();
+
+// ===== FUNCAO REGRESSION COEFS =====
+(function() {
+  const keys = Object.keys(FUNCAO_REG);
+  const coefs = keys.map(k => FUNCAO_REG[k].coef);
+  const pvals = keys.map(k => FUNCAO_REG[k].p);
+  new Chart(document.getElementById('chartFuncaoReg'), {
+    type: 'bar',
+    data: {
+      labels: keys,
+      datasets: [{
+        label: 'Coeficiente (Δ Gini)',
+        data: coefs,
+        backgroundColor: coefs.map((v, i) => (pvals[i] < 0.1 ? '#f87171' : '#6c63ff') + '55'),
+        borderColor: coefs.map((v, i) => pvals[i] < 0.1 ? '#f87171' : '#6c63ff'),
+        borderWidth: 2,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const k = ctx.label;
+              return [`coef = ${ctx.raw.toFixed(5)}`, `p = ${FUNCAO_REG[k].p.toFixed(3)}`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Δ Gini por log-ponto de emenda' },
+          grid: { color: '#2d3148' }
+        }
+      }
+    }
+  });
+})();
+
+// ===== SAUDE PER CAPITA vs GINI SCATTER =====
+new Chart(document.getElementById('chartSaudeGini'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: 'Estados',
+      data: SCATTER_SAUDE_GINI.map(d => ({ x: d.x, y: d.y, uf: d.uf, rep: d.rep })),
+      backgroundColor: SCATTER_SAUDE_GINI.map(d =>
+        d.rep >= 2 ? '#6c63ffbb' : d.rep >= 1.2 ? '#a78bfabb' : '#4a5068bb'
+      ),
+      borderColor: SCATTER_SAUDE_GINI.map(d =>
+        d.rep >= 2 ? '#6c63ff' : d.rep >= 1.2 ? '#a78bfa' : '#4a5068'
+      ),
+      pointRadius: SCATTER_SAUDE_GINI.map(d => 4 + d.rep * 2.5),
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const d = ctx.raw;
+            return [`${d.uf}  Rep: ${d.rep}×`, `Saúde: R$${d.x}/hab  Gini: ${d.y}`];
+          }
+        }
+      }
+    },
+    scales: {
+      x: { title: { display: true, text: 'Emendas saúde per capita (R$/hab, 2023)' } },
+      y: { title: { display: true, text: 'Gini 2023' }, min: 0.41, max: 0.57 }
+    }
+  }
+});
+
+// ===== FUNCAO COMPOSITION BY UF 2023 STACKED BAR =====
+(function() {
+  const funcaoColors = {
+    'Saúde': '#f87171', 'Educação': '#fbbf24', 'Agro/Infra': '#43d9ad',
+    'Social': '#38bdf8', 'Outros': '#6c63ff'
+  };
+  const keys = ['Saúde', 'Agro/Infra', 'Outros', 'Educação', 'Social'];
+  const ufs = FUNCAO_COMP_2023.map(d => d.uf);
+  new Chart(document.getElementById('chartFuncaoComp2023'), {
+    type: 'bar',
+    data: {
+      labels: ufs,
+      datasets: keys.map(k => ({
+        label: k,
+        data: FUNCAO_COMP_2023.map(d => d[k]),
+        backgroundColor: funcaoColors[k] + 'cc',
+        borderColor: funcaoColors[k],
+        borderWidth: 0,
+      }))
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw}%` } }
+      },
+      scales: {
+        x: { stacked: true, ticks: { font: { size: 10 } } },
+        y: { stacked: true, max: 100, title: { display: true, text: '% do total empenhado (2023)' } }
+      }
+    }
+  });
+})();
+
+// ===== IRF DISTRIBUTED LAG =====
+(function() {
+  const LAG_COEFS = [-0.01188, -0.00738, -0.00485, 0.00201];
+  const IRF_CUM   = [-0.01188, -0.01926, -0.02411, -0.02210];
+  new Chart(document.getElementById('chartIRF'), {
+    type: 'bar',
+    data: {
+      labels: ['Lag 0 (t)', 'Lag 1 (t−1)', 'Lag 2 (t−2)', 'Lag 3 (t−3)'],
+      datasets: [
+        {
+          label: 'Coeficiente individual',
+          data: LAG_COEFS,
+          backgroundColor: LAG_COEFS.map(v => v < 0 ? '#43d9ad44' : '#f8717144'),
+          borderColor:      LAG_COEFS.map(v => v < 0 ? '#43d9ad'   : '#f87171'),
+          borderWidth: 2, borderRadius: 4, order: 2,
+        },
+        {
+          label: 'IRF acumulado',
+          data: IRF_CUM,
+          type: 'line',
+          borderColor: '#6c63ff',
+          borderWidth: 2.5,
+          borderDash: [6, 4],
+          pointRadius: 5,
+          pointBackgroundColor: '#6c63ff',
+          fill: false,
+          order: 1,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw > 0 ? '+' : ''}${ctx.raw.toFixed(5)}` } }
+      },
+      scales: { y: { title: { display: true, text: 'Δ Gini por log-ponto de emendas' }, grid: { color: '#2d3148' } } }
+    }
+  });
+})();
+
+// ===== SICONFI MEDIATION CHAIN =====
+(function() {
+  const labels = ['Emendas → Saúde', 'Emendas → Educação', 'Saúde → Gini', 'Educação → Gini *'];
+  const coefs  = [-0.01196, 0.06477, -0.01549, -0.02531];
+  const pvals  = [0.7029,   0.1927,   0.3929,   0.026];
+  const sig    = pvals.map(p => p < 0.05);
+  new Chart(document.getElementById('chartSiconfi'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Coeficiente',
+        data: coefs,
+        backgroundColor: sig.map(s => s ? '#43d9ad44' : '#6c63ff33'),
+        borderColor:      sig.map(s => s ? '#43d9ad'   : '#6c63ff'),
+        borderWidth: 2, borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => [`coef = ${ctx.raw.toFixed(5)}`, `p = ${pvals[ctx.dataIndex].toFixed(4)}${pvals[ctx.dataIndex] < 0.05 ? ' *' : ''}`] } }
+      },
+      scales: { x: { title: { display: true, text: 'Coeficiente (escala log ou nível)' }, grid: { color: '#2d3148' } } }
+    }
+  });
+})();
+
+// ===== DiD EVENT STUDY =====
+(function() {
+  const allYears = [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023];
+  const allCoefs = [-0.0063, 0.0, 0.00141, -0.00793, -0.00364, 0.00441, -0.00903, 0.00139, -0.00782, -0.01465];
+  new Chart(document.getElementById('chartEventStudy'), {
+    type: 'bar',
+    data: {
+      labels: allYears,
+      datasets: [{
+        label: 'Δ Gini (low-exec vs high-exec)',
+        data: allCoefs,
+        backgroundColor: allCoefs.map((v, i) => i === 1 ? '#ffffff22' : v < 0 ? '#43d9ad33' : '#f8717133'),
+        borderColor:      allCoefs.map((v, i) => i === 1 ? '#ffffff55' : v < 0 ? '#43d9ad'   : '#f87171'),
+        borderWidth: 2, borderRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.dataIndex === 1 ? 'Baseline (2015 = 0)' : `coef = ${ctx.raw.toFixed(5)}` } }
+      },
+      scales: {
+        y: { title: { display: true, text: 'Δ Gini (grupo low-exec vs high-exec)' }, grid: { color: '#2d3148' } },
+        x: { grid: { color: '#2d3148' } }
+      }
+    }
+  });
+})();
+
+// ===== RDD SCATTER =====
+(function() {
+  const RDD_ALL = [{"uf":"AC","cadeiras":8,"emendas_m":25.9,"gini":0.536},{"uf":"AL","cadeiras":9,"emendas_m":7.4,"gini":0.519},{"uf":"AM","cadeiras":8,"emendas_m":6.1,"gini":0.541},{"uf":"AP","cadeiras":8,"emendas_m":25.0,"gini":0.530},{"uf":"BA","cadeiras":39,"emendas_m":4.7,"gini":0.529},{"uf":"CE","cadeiras":22,"emendas_m":4.6,"gini":0.532},{"uf":"DF","cadeiras":8,"emendas_m":6.9,"gini":0.563},{"uf":"ES","cadeiras":10,"emendas_m":6.4,"gini":0.498},{"uf":"GO","cadeiras":17,"emendas_m":5.5,"gini":0.463},{"uf":"MA","cadeiras":18,"emendas_m":6.1,"gini":0.505},{"uf":"MG","cadeiras":53,"emendas_m":4.2,"gini":0.479},{"uf":"MS","cadeiras":8,"emendas_m":7.7,"gini":0.474},{"uf":"MT","cadeiras":8,"emendas_m":6.8,"gini":0.456},{"uf":"PA","cadeiras":17,"emendas_m":4.9,"gini":0.512},{"uf":"PB","cadeiras":12,"emendas_m":7.3,"gini":0.540},{"uf":"PE","cadeiras":25,"emendas_m":4.3,"gini":0.547},{"uf":"PI","cadeiras":10,"emendas_m":10.5,"gini":0.519},{"uf":"PR","cadeiras":30,"emendas_m":4.8,"gini":0.471},{"uf":"RJ","cadeiras":46,"emendas_m":2.8,"gini":0.534},{"uf":"RN","cadeiras":8,"emendas_m":8.8,"gini":0.533},{"uf":"RO","cadeiras":8,"emendas_m":11.9,"gini":0.457},{"uf":"RR","cadeiras":8,"emendas_m":28.3,"gini":0.546},{"uf":"RS","cadeiras":31,"emendas_m":5.1,"gini":0.473},{"uf":"SC","cadeiras":16,"emendas_m":5.2,"gini":0.418},{"uf":"SE","cadeiras":8,"emendas_m":10.1,"gini":0.542},{"uf":"SP","cadeiras":70,"emendas_m":2.1,"gini":0.517},{"uf":"TO","cadeiras":8,"emendas_m":15.0,"gini":0.501}];
+  const at8    = RDD_ALL.filter(d => d.cadeiras === 8);
+  const above8 = RDD_ALL.filter(d => d.cadeiras > 8);
+  new Chart(document.getElementById('chartRDD'), {
+    type: 'scatter',
+    data: {
+      datasets: [
+        {
+          label: '8 cadeiras (mínimo constitucional)',
+          data: at8.map(d => ({ x: d.cadeiras, y: d.emendas_m, uf: d.uf, gini: d.gini })),
+          backgroundColor: '#f8717188', borderColor: '#f87171', pointRadius: 7,
+        },
+        {
+          label: 'Acima do mínimo',
+          data: above8.map(d => ({ x: d.cadeiras, y: d.emendas_m, uf: d.uf, gini: d.gini })),
+          backgroundColor: '#6c63ff88', borderColor: '#6c63ff', pointRadius: 7,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => [`${ctx.raw.uf}`, `Cadeiras: ${ctx.raw.x}  Emendas: R$${ctx.raw.y}mi/100k`, `Gini: ${ctx.raw.gini}`] } }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Cadeiras na Câmara' }, min: 6, max: 75, grid: { color: '#2d3148' } },
+        y: { title: { display: true, text: 'Emendas per capita (R$ mi / 100k hab)' }, grid: { color: '#2d3148' } }
+      }
+    }
+  });
+})();
+
+// ===== DML vs OLS =====
+(function() {
+  new Chart(document.getElementById('chartDML'), {
+    type: 'bar',
+    data: {
+      labels: ['OLS com Efeitos Fixos', 'Double/Debiased ML (LassoCV)'],
+      datasets: [{
+        label: 'Estimativa θ',
+        data: [-0.01024, 0.00103],
+        backgroundColor: ['#f8717144', '#43d9ad44'],
+        borderColor:      ['#f87171',   '#43d9ad'],
+        borderWidth: 2, borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.dataIndex === 0 ? `OLS: θ = ${ctx.raw.toFixed(5)}, p = 0.036 ⚠️ viesiado` : `DML: θ = ${ctx.raw.toFixed(5)}, IC=[−0.004, +0.006], p = 0.671` } }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Efeito estimado de emendas sobre Gini (log-ponto)' }, grid: { color: '#2d3148' } }
+      }
+    }
+  });
+})();
+
+// ===== MERMAID =====
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    background: '#1a1d2e',
+    primaryColor: '#2d1f5e',
+    primaryTextColor: '#e2e8f0',
+    primaryBorderColor: '#6c63ff',
+    lineColor: '#6c63ff',
+    secondaryColor: '#242740',
+    tertiaryColor: '#1f2d5e',
+    edgeLabelBackground: '#1a1d2e',
+    fontFamily: 'Segoe UI, system-ui, sans-serif',
+  }
+});
+
+// ===== SCROLL ANIMATIONS =====
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

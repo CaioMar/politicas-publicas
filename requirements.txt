@@ -1,0 +1,27 @@
+# Dependências — Estudo Causal: Representação e Desigualdade
+
+# Manipulação e análise de dados
+pandas>=2.0
+numpy>=1.24
+scipy>=1.11
+
+# Econometria e causalidade
+dowhy>=0.11          # framework causal geral (DoWhy / PyWhy)
+econml>=0.15         # Double ML, IV, causal forests
+linearmodels>=5.3    # painel com efeitos fixos (PanelOLS, AbsorbingLS)
+statsmodels>=0.14    # OLS, 2SLS, mediation
+
+# Visualização
+matplotlib>=3.7
+seaborn>=0.12
+networkx>=3.1        # visualizar DAG
+
+# Obtenção de dados
+requests>=2.31
+sidrapy>=0.1.7       # IBGE SIDRA API (Gini, PNAD)
+basedosdados>=2.0    # Base dos Dados (IBGE, TSE, etc.)
+
+# Utilitários
+python-dotenv>=1.0
+tqdm>=4.66
+jupyterlab>=4.0
