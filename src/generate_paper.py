@@ -205,7 +205,7 @@ def on_later_pages(canvas, doc):
     canvas.setFont("DejaVuSans", 8)
     canvas.setFillColor(colors.HexColor("#888888"))
     # Running header
-    header = "Martins, C. — Parliamentary Representation, Earmarked Transfers & Inequality"
+    header = "Martins Ramos de Oliveira, C. — Parliamentary Representation, Earmarked Transfers & Inequality"
     canvas.drawString(MARGIN, PAGE_H - MARGIN + 0.4*cm, header)
     canvas.drawRightString(PAGE_W - MARGIN, PAGE_H - MARGIN + 0.4*cm,
                            f"arXiv Working Paper · May 2026")
@@ -244,7 +244,7 @@ def build_story(S):
             S["title"]
         ),
         sp(10),
-        Paragraph("Caio Martins", S["author"]),
+        Paragraph("Caio Martins Ramos de Oliveira", S["author"]),
         Paragraph("Independent Researcher &amp; Data Scientist", S["affil"]),
         Paragraph(
             f"Working Paper · May 2026 · "
@@ -905,7 +905,7 @@ def build_pdf():
         leftMargin=MARGIN, rightMargin=MARGIN,
         topMargin=MARGIN + 0.5*cm, bottomMargin=MARGIN,
         title="Parliamentary Representation, Earmarked Transfers, and Inequality in Brazil",
-        author="Caio Martins",
+        author="Caio Martins Ramos de Oliveira",
         subject="Causal Analysis · Brazilian Fiscal Federalism",
         creator="ReportLab / Python",
     )
