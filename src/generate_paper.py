@@ -374,8 +374,8 @@ def build_story(S):
         ssec("5.2  Distributed-lag impulse response"),
         p("To allow for multi-year accumulation we estimate:"),
         eq_image(r"\mathrm{Gini}_{it} = \sum_{k=0}^{3} \beta_k \cdot \log(\mathrm{emendas})_{i,t-k} + \gamma X_{it} + \delta_i + \lambda_t + \varepsilon_{it}"),
-        p("with state (δ_i) and year (λ_t) fixed effects. N = 189 after creating lags. "
-          "The cumulative impulse-response function (IRF) is Σ β_k."),
+        p("with state (δ<sub>i</sub>) and year (λ<sub>t</sub>) fixed effects. N = 189 after creating lags. "
+          "The cumulative impulse-response function (IRF) is Σ β<sub>k</sub>."),
         ssec("5.3  Difference-in-Differences (EC 86/2015)"),
         p("Constitutional Amendment 86/2015 mandated execution of individually presented "
           "amendments starting in 2016. We define as treated states those with low "
@@ -390,7 +390,7 @@ def build_story(S):
         ssec("5.5  Double Machine Learning"),
         p("Following Chernozhukov et al. (2018), we estimate the partially linear model:"),
         eq_image(r"\mathrm{Gini}_{it} = \theta \cdot T_{it} + g(X_{it}) + \varepsilon_{it}"),
-        p("via 5-fold cross-fitting with LassoCV to partial out the confounders g(X). "
+        p("via 5-fold cross-fitting with LassoCV to partial out the confounders g(X<sub>it</sub>). "
           "The residual-on-residual OLS estimator θ̂ is asymptotically normal and "
           "consistent under cross-fitted nuisance estimation. N = 243."),
     ]
@@ -405,7 +405,7 @@ def build_story(S):
           "redistributive effect of amendments. The direct effect T → Y is positive and "
           "significant (c′ = +0.0058, p = 0.010), implying that over-representation "
           "raises the Gini through channels other than amendments. The total effect "
-          "(c = +0.0027, p = 0.151) is not distinguishable from zero."),
+          "(c = +0.0027, p = 0.151) is not distinguishable from zero."        ),
     ]
 
     tbl2_data = [
@@ -429,7 +429,7 @@ def build_story(S):
         sp(6),
         ssec("6.2  Distributed-lag impulse response"),
         p("The distributed-lag model reveals a consistent negative pattern: lag-0 "
-          "coefficient β₀ = −0.0119, accumulating to a cumulative IRF of −0.024 at lag 2, "
+          "coefficient β<sub>0</sub> = −0.0119, accumulating to a cumulative IRF of −0.024 at lag 2, "
           "before partly recovering to −0.022 at lag 3. No individual lag coefficient is "
           "significant at the 5% level (all p > 0.13), but the sustained negative sign "
           "is consistent with a slow-moving redistributive effect that may require "
@@ -467,7 +467,7 @@ def build_story(S):
           "RDD continuity assumption."),
         ssec("6.5  Double Machine Learning"),
         p("The DML estimate θ̂ = +0.00103 (95% CI: [−0.004, +0.006], p = 0.67) "
-          "corroborates the null finding. Notably, naïve OLS yielded θ̂ᴼᴸˢ = −0.010 "
+          "corroborates the null finding. Notably, naïve OLS yielded θ̂<super>OLS</super> = −0.010 "
           "(p = 0.036), an artefact of the correlation between small states "
           "(over-represented constitutionally) and high inequality — a spurious "
           "negative coefficient that DML's non-parametric deconfounding eliminates."),
