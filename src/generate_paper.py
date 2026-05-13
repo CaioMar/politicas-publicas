@@ -391,7 +391,7 @@ def build_story(S):
         p("Following Chernozhukov et al. (2018), we estimate the partially linear model:"),
         eq_image(r"\mathrm{Gini}_{it} = \theta \cdot T_{it} + g(X_{it}) + \varepsilon_{it}"),
         p("via 5-fold cross-fitting with LassoCV to partial out the confounders g(X<sub>it</sub>). "
-          "The residual-on-residual OLS estimator θ̂ is asymptotically normal and "
+          "The residual-on-residual OLS estimator θ<super>^</super> is asymptotically normal and "
           "consistent under cross-fitted nuisance estimation. N = 243."),
     ]
 
@@ -466,8 +466,8 @@ def build_story(S):
           "exactly at the 8-seat minimum, creating a density mass that violates the "
           "RDD continuity assumption."),
         ssec("6.5  Double Machine Learning"),
-        p("The DML estimate θ̂ = +0.00103 (95% CI: [−0.004, +0.006], p = 0.67) "
-          "corroborates the null finding. Notably, naïve OLS yielded θ̂<super>OLS</super> = −0.010 "
+        p("The DML estimate θ<super>^</super> = +0.00103 (95% CI: [−0.004, +0.006], p = 0.67) "
+          "corroborates the null finding. Notably, naïve OLS yielded θ<super>^,OLS</super> = −0.010 "
           "(p = 0.036), an artefact of the correlation between small states "
           "(over-represented constitutionally) and high inequality — a spurious "
           "negative coefficient that DML's non-parametric deconfounding eliminates."),
