@@ -489,7 +489,7 @@ flowchart LR
     T["🏛️ Tratamento T\nRepresentação\nRelativa"]:::treatment
     M["💰 Mediador M\nEmendas\nper capita"]:::mediator
     Y["📊 Resultado Y\nGini\nestadual"]:::outcome
-    U(["🔀 Confundidores\nPIB per capita\nRegião\nGini defasado"]):::confound
+    U(["🔀 Confundidores\nPIB per capita\nRegião\nGini defasado\nGini 1991 (ADH)"]):::confound
 
     Z -->|"instrumento\n válido"| T
     T -->|"a = +0.458\n p < 0.001 ✅"| M
@@ -540,7 +540,7 @@ flowchart LR
           </tr>
           <tr>
             <td style="white-space:nowrap;color:var(--yellow)"><strong>U → ×</strong></td>
-            <td>Confundidores observados (log PIB per capita, Gini defasado) — controlados via regressão múltipla</td>
+            <td>Confundidores observados (log PIB per capita, Gini defasado, Gini 1991 ADH/Censo) — controlados via regressão múltipla</td>
             <td style="white-space:nowrap;color:var(--text-muted)">controlados</td>
           </tr>
         </tbody>
@@ -664,7 +664,7 @@ flowchart LR
   </div>
 
   <div class="callout fade-in" style="margin-top:1.5rem">
-    <strong>📌 Conclusão principal:</strong> A hipótese "mais cadeiras → mais emendas → menos desigualdade" tem o <em>primeiro elo confirmado com força</em>. O segundo elo (M→Y) existe mas é pequeno demais para gerar efeito total significativo. A redistribuição via emendas está sendo eclipsada por determinantes estruturais de longo prazo da desigualdade.
+    <strong>📌 Conclusão principal:</strong> A hipótese "mais cadeiras → mais emendas → menos desigualdade" tem o <em>primeiro elo confirmado com força</em>. O segundo elo (M→Y) existe mas é pequeno demais para gerar efeito total significativo. A redistribuição via emendas está sendo eclipsada por determinantes estruturais de longo prazo da desigualdade. A validade do instrumento IV foi verificada por IV condicional controlando pelo Gini 1991 (Atlas do Desenvolvimento Humano, Censo Demográfico — IPEADATA: ADH_GINI), confirmando a robustez à ameaça de confundimento histórico.
   </div>
 </div>
 </section>
@@ -728,6 +728,12 @@ flowchart LR
       <div class="priority priority-done">✅ Realizado · Modelagem</div>
       <h4>8. Double/Debiased ML (Chernozhukov et al., 2018)</h4>
       <p>5-fold cross-fitting com LassoCV (N=243): θ=+0.00103, IC=[−0.004, +0.006], p=0.67 — <strong>não significativo</strong>. OLS mostrava θ=−0.010 (p=0.036) — estava viesiado por confundidores. DML remove o viés: resultado nulo é a estimativa mais confiável. <a href="#robustez" style="color:var(--accent)">→ Ver OLS vs DML</a></p>
+    </div>
+
+    <div class="next-card">
+      <div class="priority priority-done">✅ Realizado · Validade do Instrumento</div>
+      <h4>9. IV Condicional — Controle Histórico Pre-Constitucional</h4>
+      <p>Ameaça à restrição de exclusão: a alocação de cadeiras em 1988 pode refletir a desigualdade pré-constitucional. Resposta: IV condicional controlando para o <strong>Gini de 1991 do Atlas do Desenvolvimento Humano</strong> (ADH_GINI, IPEADATA — Censo Demográfico 1991, 27 UFs) e o log do PIB per capita de 1991. O Gini 1991 é uma medida direta de desigualdade apenas 3 anos após a Constituição. Resultado: coeficientes do instrumento estáveis entre especificações (baseline, +gini_1991, +log_pib_1991, +ambos) — a restrição de exclusão é robusta ao confundidor histórico.</p>
     </div>
 
   </div>

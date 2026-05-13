@@ -103,33 +103,54 @@ def get_historical_proxy(cache: bool = True) -> pd.DataFrame:
     """
     Retorna proxy de desenvolvimento histórico (pré-Constituição) por UF.
 
-    Estratégia:
-    -----------
-    Não existe série de Gini estadual contínua antes de 2001 no IPEADATA.
-    Usamos dois indicadores como proxy da situação histórica de cada estado
-    no momento em que as cadeiras foram fixadas (1988):
+    Fontes
+    ------
+    1. gini_1991  — Gini estadual de 1991 do Atlas do Desenvolvimento Humano
+                    (IPEADATA série ADH_GINI, calculado pelo PNUD/IPEA com base
+                    no Censo Demográfico 1991). Cobre 27 UFs, valores em [0,1].
+                    É o proxy mais próximo do Gini vigente quando a Constituição
+                    de 1988 fixou os limites de cadeiras.
+                    Anos disponíveis: 1991, 2000, 2010.
 
-      pib_pc_1991   - PIB per capita estadual de 1991 (Contas Regionais,
-                      IPEADATA série PIBPCE, preços de 2010 R$).
-                      Alta correlação com desenvolvimento/desigualdade inicial.
+    2. pib_pc_1991 — PIB per capita estadual de 1991 (Contas Regionais,
+                     IPEADATA série PIBPCE, preços de 2010 R$).
 
-      gini_baseline - Primeiro Gini disponível por estado no painel PNAD
-                      Contínua (normalmente 2012 ou 2013). Servem como
-                      estado inicial, pois a correlação serial do Gini
-                      estadual brasileiro é > 0.95 (Lustig et al. 2013).
-
-    Limitação explicitamente documentada na Seção 4.2 do paper:
-    a Gini exata de 1988 não está disponível no IPEADATA/PNADCA.
-    O PIB 1991 é proxy plausível mas imperfeito para a desigualdade no
-    momento da promulgação constitucional.
+    3. gini_baseline — primeiro Gini disponível no painel PNAD Contínua
+                       (≈ 2012), retido como controle adicional de persistência.
 
     Retorna
     -------
-    pd.DataFrame com colunas: [uf, pib_pc_1991, gini_baseline]
+    pd.DataFrame com colunas:
+        [uf, gini_1991, log_pib_pc_1991, pib_pc_1991, gini_baseline]
     """
     cache_path = RAW_DIR / "ibge_hist_proxy.parquet"
     if cache and cache_path.exists():
         return pd.read_parquet(cache_path)
+
+    # ── Gini 1991 via Atlas do Desenvolvimento Humano ─────────────────────────
+    adh_url = ("http://www.ipeadata.gov.br/api/odata4/"
+               "ValoresSerie(SERCODIGO='ADH_GINI')")
+    r = requests.get(adh_url, timeout=30)
+    r.raise_for_status()
+    adh_raw = pd.DataFrame(r.json().get("value", []))
+    adh_est = adh_raw[adh_raw["NIVNOME"] == "Estados"].copy()
+    adh_est["uf"] = (
+        adh_est["TERCODIGO"].astype(str).str.zfill(2).map(UF_CODIGO_PARA_SIGLA)
+    )
+    adh_est["ano"] = pd.to_datetime(adh_est["VALDATA"], utc=True).dt.year
+    adh_est["gini_adh"] = pd.to_numeric(adh_est["VALVALOR"], errors="coerce")
+    # Use 1991 as primary baseline; fall back to 2000 if missing
+    gini_1991 = (
+        adh_est[adh_est["ano"] == 1991][["uf", "gini_adh"]]
+        .rename(columns={"gini_adh": "gini_1991"})
+        .dropna()
+    )
+    if gini_1991.empty:
+        gini_1991 = (
+            adh_est[adh_est["ano"] == 2000][["uf", "gini_adh"]]
+            .rename(columns={"gini_adh": "gini_1991"})
+            .dropna()
+        )
 
     # ── PIB per capita 1991 ───────────────────────────────────────────────────
     pib_all = _fetch_ipeadata_states("PIBPCE", "pib_per_capita")
@@ -138,13 +159,12 @@ def get_historical_proxy(cache: bool = True) -> pd.DataFrame:
         .rename(columns={"pib_per_capita": "pib_pc_1991"})
     )
     if pib_1991.empty:
-        # Fallback: usar 1995 se 1991 não disponível
         pib_1991 = (
             pib_all[pib_all["ano"] == 1995][["uf", "pib_per_capita"]]
             .rename(columns={"pib_per_capita": "pib_pc_1991"})
         )
 
-    # ── Gini baseline (primeiro ano disponível por UF) ────────────────────────
+    # ── Gini baseline (PNAD Contínua, ≈2012) ─────────────────────────────────
     gini_all = _fetch_ipeadata_states("PNADCA_GINIUF", "gini")
     gini_baseline = (
         gini_all.sort_values("ano")
@@ -153,11 +173,14 @@ def get_historical_proxy(cache: bool = True) -> pd.DataFrame:
         .rename(columns={"gini": "gini_baseline"})
     )
 
-    proxy = pib_1991.merge(gini_baseline, on="uf", how="outer")
+    # ── Juntar tudo ───────────────────────────────────────────────────────────
+    proxy = gini_1991.merge(pib_1991, on="uf", how="outer")
+    proxy = proxy.merge(gini_baseline, on="uf", how="outer")
     proxy["log_pib_pc_1991"] = np.log(proxy["pib_pc_1991"].replace(0, np.nan))
 
     proxy.to_parquet(cache_path, index=False)
-    print(f"Proxy histórico salvo: {len(proxy)} UFs")
+    print(f"Proxy histórico salvo: {len(proxy)} UFs | "
+          f"gini_1991 disponível: {proxy['gini_1991'].notna().sum()} UFs")
     return proxy
 
 

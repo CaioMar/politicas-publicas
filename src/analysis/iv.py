@@ -116,10 +116,11 @@ def run_conditional_iv(df: pd.DataFrame) -> dict:
     base_controls = "log_pib_per_cap + C(regiao) + gini_lag1"
 
     # ── Verificar disponibilidade das proxies ─────────────────────────────────
+    has_gini91 = "gini_1991"       in df.columns and df["gini_1991"].notna().any()
     has_pib91  = "log_pib_pc_1991" in df.columns and df["log_pib_pc_1991"].notna().any()
     has_gini0  = "gini_baseline"   in df.columns and df["gini_baseline"].notna().any()
 
-    if not has_pib91 and not has_gini0:
+    if not has_gini91 and not has_pib91 and not has_gini0:
         warnings.warn(
             "Proxies históricas ausentes do painel. "
             "Execute build_panel.py com get_historical_proxy() habilitado.\n"
@@ -156,20 +157,25 @@ def run_conditional_iv(df: pd.DataFrame) -> dict:
     df0 = df.dropna(subset=req_cols).copy()
     results["baseline"] = _ols_iv(df0, "", "baseline")
 
+    # ── Controlando por Gini 1991 (ADH/Censo Demográfico) ────────────────────
+    if has_gini91:
+        df1 = df.dropna(subset=req_cols + ["gini_1991"]).copy()
+        results["cond_gini91"] = _ols_iv(df1, "gini_1991", "cond_gini91")
+
     # ── Controlando por PIB per capita 1991 ───────────────────────────────────
     if has_pib91:
-        df1 = df.dropna(subset=req_cols + ["log_pib_pc_1991"]).copy()
-        results["cond_pib91"] = _ols_iv(df1, "log_pib_pc_1991", "cond_pib91")
+        df2 = df.dropna(subset=req_cols + ["log_pib_pc_1991"]).copy()
+        results["cond_pib91"] = _ols_iv(df2, "log_pib_pc_1991", "cond_pib91")
 
-    # ── Controlando por Gini baseline (persistência histórica) ───────────────
+    # ── Controlando por Gini baseline (PNAD ≈2012, persistência) ─────────────
     if has_gini0:
-        df2 = df.dropna(subset=req_cols + ["gini_baseline"]).copy()
-        results["cond_gini0"] = _ols_iv(df2, "gini_baseline", "cond_gini0")
+        df3 = df.dropna(subset=req_cols + ["gini_baseline"]).copy()
+        results["cond_gini0"] = _ols_iv(df3, "gini_baseline", "cond_gini0")
 
-    # ── Controlando por ambas ─────────────────────────────────────────────────
-    if has_pib91 and has_gini0:
-        df3 = df.dropna(subset=req_cols + ["log_pib_pc_1991", "gini_baseline"]).copy()
-        results["cond_both"] = _ols_iv(df3, "log_pib_pc_1991 + gini_baseline", "cond_both")
+    # ── Controlando por Gini 1991 + PIB 1991 (especificação completa) ─────────
+    if has_gini91 and has_pib91:
+        df4 = df.dropna(subset=req_cols + ["gini_1991", "log_pib_pc_1991"]).copy()
+        results["cond_full"] = _ols_iv(df4, "gini_1991 + log_pib_pc_1991", "cond_full")
 
     # ── Tabela comparativa ────────────────────────────────────────────────────
     sens = pd.DataFrame(list(results.values()))

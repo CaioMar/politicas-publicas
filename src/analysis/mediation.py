@@ -106,17 +106,19 @@ def baron_kenny(
     # Adicionar proxies históricas se disponíveis e solicitadas
     if add_historical_controls:
         extra = []
+        if "gini_1991" in df.columns and df["gini_1991"].notna().any():
+            extra.append("gini_1991")   # preferido: Gini ADH 1991 (Censo)
+        elif "gini_baseline" in df.columns and df["gini_baseline"].notna().any():
+            extra.append("gini_baseline")  # fallback: PNAD 2012
         if "log_pib_pc_1991" in df.columns and df["log_pib_pc_1991"].notna().any():
             extra.append("log_pib_pc_1991")
-        if "gini_baseline" in df.columns and df["gini_baseline"].notna().any():
-            extra.append("gini_baseline")
         if extra:
             controls = controls + extra
             print(f"[Mediação] Controles históricos adicionados: {extra}")
         else:
             import warnings
             warnings.warn(
-                "Proxies históricas (log_pib_pc_1991, gini_baseline) não encontradas "
+                "Proxies históricas (gini_1991, log_pib_pc_1991) não encontradas "
                 "no painel. A ameaça do confundidor histórico não está sendo controlada. "
                 "Execute build_panel.py para gerar o painel completo."
             )

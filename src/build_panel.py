@@ -23,6 +23,9 @@ Colunas do painel final:
   pos_ec100                : 1 se ano >= 2019 (EC 100/109 emendas impositivas geral)
 
   ── Proxies históricas (threat ao IV) ─────────────────────────────────────────
+  gini_1991                : Gini estadual de 1991 (Atlas Desenvolvimento Humano /
+                             IPEADATA ADH_GINI, Censo 1991). Proxy direto da
+                             desigualdade pré-constitucional. 27 UFs disponíveis.
   pib_pc_1991              : PIB per capita estadual em 1991 (R$ 2010, IPEADATA PIBPCE)
   log_pib_pc_1991          : log(pib_pc_1991)
   gini_baseline            : primeiro Gini disponível por estado no painel PNAD (≈2012)
@@ -130,7 +133,7 @@ def build_panel(
     try:
         from src.collect.ibge import get_historical_proxy
         hist = get_historical_proxy(cache=True)
-        df = df.merge(hist[["uf", "pib_pc_1991", "log_pib_pc_1991", "gini_baseline"]],
+        df = df.merge(hist[["uf", "gini_1991", "pib_pc_1991", "log_pib_pc_1991", "gini_baseline"]],
                       on="uf", how="left")
     except Exception as _e:
         import warnings
@@ -139,6 +142,7 @@ def build_panel(
         df["pib_pc_1991"] = np.nan
         df["log_pib_pc_1991"] = np.nan
         df["gini_baseline"] = np.nan
+        df["gini_1991"] = np.nan
 
     # Instrumentos (IV)
     # Z1: dummies de cap (binário: no teto máximo ou mínimo constitucional)
