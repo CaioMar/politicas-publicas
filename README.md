@@ -1,5 +1,70 @@
 # Estudo Causal: Representação Parlamentar, Emendas e Desigualdade nos Estados Brasileiros
 
+> **Preprint:** [SSRN abstract=6762220](https://ssrn.com/abstract=6762220)  
+> **Código:** [github.com/CaioMar/politicas-publicas](https://github.com/CaioMar/politicas-publicas)  
+> **Autor:** Caio Martins Ramos de Oliveira — Independent Researcher
+
+---
+
+## Como Reproduzir o Paper
+
+### 1. Clonar e instalar dependências
+
+```bash
+git clone https://github.com/CaioMar/politicas-publicas.git
+cd politicas-publicas/causal_study
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 2. Baixar dados brutos (APIs públicas)
+
+```bash
+# Gini estadual, PIB per capita e proxy histórico (IPEADATA — sem autenticação)
+PYTHONPATH=. python -c "
+from src.collect.ibge import get_gini, get_pib_per_capita, get_historical_proxy
+get_gini(cache=False)
+get_pib_per_capita(cache=False)
+get_historical_proxy(cache=False)
+"
+
+# Emendas parlamentares (Portal da Transparência — requer token gratuito)
+# Obtenha em: https://portaldatransparencia.gov.br/api-de-dados/cadastrar-email
+# Depois: export TRANSPARENCIA_TOKEN=<seu_token>
+PYTHONPATH=. python -c "
+from src.collect.siga import get_emendas
+import os
+get_emendas(api_token=os.environ['TRANSPARENCIA_TOKEN'])
+"
+```
+
+> Os dados do TSE (cadeiras por UF) estão hardcoded em `src/collect/tse.py`
+> com base na Resolução TSE 23.389/2013 — nenhum download necessário.
+
+### 3. Construir o painel analítico
+
+```bash
+PYTHONPATH=. python src/build_panel.py
+# Saída: data/processed/panel.parquet (297 obs × 28 variáveis)
+```
+
+### 4. Gerar o paper (PDF)
+
+```bash
+PYTHONPATH=. python src/generate_paper.py
+# Saída: docs/paper.pdf
+```
+
+Todas as tabelas e figuras do paper são geradas automaticamente nesta etapa,
+incluindo os resultados de IV condicional (Tabela 5).
+
+### Dependências de sistema
+
+- Python ≥ 3.10
+- Fonte DejaVu Sans: `sudo apt-get install fonts-dejavu` (Linux) ou incluída por padrão no macOS/Windows
+
+---
+
 ## Pergunta Causal
 
 > **Mais cadeiras parlamentares → mais emendas orçamentárias → redução da desigualdade estadual?**

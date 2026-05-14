@@ -1,0 +1,42 @@
+cff-version: 1.2.0
+message: "If you use this code or data, please cite:"
+type: software
+authors:
+  - family-names: "Martins Ramos de Oliveira"
+    given-names: "Caio"
+    orcid: ""
+    affiliation: "Independent Researcher"
+title: "Parliamentary Representation, Earmarked Transfers, and Income Inequality in Brazilian States: A Multi-Strategy Causal Analysis"
+abstract: >
+  We investigate whether over-representation in the Brazilian Chamber of Deputies
+  increases the volume of earmarked parliamentary amendments (emendas parlamentares)
+  received by states and, ultimately, reduces state-level income inequality (Gini
+  coefficient). Exploiting the constitutionally fixed seat floors (8 seats) and
+  ceilings (70 seats) as an instrumental variable, and applying five distinct causal
+  identification strategies, we find no robust evidence that parliamentary amendments
+  reduce inequality at the state level.
+keywords:
+  - parliamentary representation
+  - earmarked transfers
+  - income inequality
+  - causal mediation
+  - instrumental variables
+  - Brazilian fiscal federalism
+  - emendas parlamentares
+  - Double Machine Learning
+license: MIT
+date-released: "2026-05-13"
+url: "https://github.com/CaioMar/politicas-publicas"
+repository-code: "https://github.com/CaioMar/politicas-publicas"
+preferred-citation:
+  type: unpublished
+  authors:
+    - family-names: "Martins Ramos de Oliveira"
+      given-names: "Caio"
+      affiliation: "Independent Researcher"
+  title: "Parliamentary Representation, Earmarked Transfers, and Income Inequality in Brazilian States: A Multi-Strategy Causal Analysis"
+  year: 2026
+  url: "https://ssrn.com/abstract=6762220"
+  notes: "Available at SSRN: https://ssrn.com/abstract=6762220"
+  keywords:
+    - "JEL: H72, H77, D72, C26, N46"
