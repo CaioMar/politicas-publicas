@@ -115,9 +115,11 @@ def eq_image(latex_str, fontsize=11, color="#111111"):
 # ─────────────────────────────────────────────────────────────────────────────
 # OUTPUT PATH
 # ─────────────────────────────────────────────────────────────────────────────
+ANON = "--anon" in sys.argv
+
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "docs")
 os.makedirs(OUT_DIR, exist_ok=True)
-OUT_PATH = os.path.join(OUT_DIR, "paper.pdf")
+OUT_PATH = os.path.join(OUT_DIR, "paper_anon.pdf" if ANON else "paper.pdf")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # STYLES
@@ -215,8 +217,9 @@ def on_later_pages(canvas, doc):
     canvas.setFont("DejaVuSans", 8)
     canvas.setFillColor(colors.HexColor("#888888"))
     # Running header — keep both sides short to avoid overlap
-    canvas.drawString(MARGIN, PAGE_H - MARGIN + 0.4*cm,
-                      "Martins Ramos de Oliveira, C.")
+    if not ANON:
+        canvas.drawString(MARGIN, PAGE_H - MARGIN + 0.4*cm,
+                          "Martins Ramos de Oliveira, C.")
     canvas.drawRightString(PAGE_W - MARGIN, PAGE_H - MARGIN + 0.4*cm,
                            "Representation, Transfers & Inequality in Brazil · 2026")
     canvas.line(MARGIN, PAGE_H - MARGIN + 0.25*cm,
@@ -254,13 +257,16 @@ def build_story(S):
             S["title"]
         ),
         sp(10),
-        Paragraph("Caio Martins Ramos de Oliveira", S["author"]),
-        Paragraph("Independent Researcher &amp; Data Scientist", S["affil"]),
+        *([] if ANON else [
+            Paragraph("Caio Martins Ramos de Oliveira", S["author"]),
+            Paragraph("Independent Researcher &amp; Data Scientist", S["affil"]),
+        ]),
         Paragraph(
-            f"Working Paper · May 2026 · "
-            "<font color='#1a4eb8'>"
-            "https://caiomar.github.io/politicas-publicas/dashboard.html"
-            "</font>",
+            "Working Paper · May 2026"
+            + ("" if ANON else
+               " · <font color='#1a4eb8'>"
+               "https://caiomar.github.io/politicas-publicas/dashboard.html"
+               "</font>"),
             S["subtitle"]
         ),
         sp(12), hr(), sp(6),
@@ -804,7 +810,8 @@ def build_story(S):
           "1991 Census Gini (ADH_GINI, Atlas do Desenvolvimento Humano, IPEADATA), "
           "a near-contemporaneous direct pre-constitutional baseline. "
           "These limitations are documented in the replication code "
-          "(src/analysis/iv.py::run_conditional_iv) and motivate the next stage "
+          + ("" if ANON else "(src/analysis/iv.py::run_conditional_iv) ")
+          + "and motivate the next stage "
           "of this research agenda at the municipal level."),
     ]
 
@@ -943,10 +950,12 @@ def build_story(S):
         sp(10),
         hr(),
         Paragraph(
-            f"This working paper was prepared using Python/ReportLab. "
-            f"Replication code and data: "
-            "<font color='#1a4eb8'>https://github.com/CaioMar/politicas-publicas</font> · "
-            f"Generated {datetime.date.today().strftime('%B %d, %Y')}.",
+            ("Working paper prepared for blind peer review. "
+             if ANON else
+             "This working paper was prepared using Python/ReportLab. "
+             "Replication code and data: "
+             "<font color='#1a4eb8'>https://github.com/CaioMar/politicas-publicas</font> · ")
+            + f"Generated {datetime.date.today().strftime('%B %d, %Y')}.",
             S["footnote"]
         ),
     ]
@@ -964,7 +973,7 @@ def build_pdf():
         leftMargin=MARGIN, rightMargin=MARGIN,
         topMargin=MARGIN + 0.5*cm, bottomMargin=MARGIN,
         title="Parliamentary Representation, Earmarked Transfers, and Inequality in Brazil",
-        author="Caio Martins Ramos de Oliveira",
+        author="" if ANON else "Caio Martins Ramos de Oliveira",
         subject="Causal Analysis · Brazilian Fiscal Federalism",
         creator="ReportLab / Python",
     )
