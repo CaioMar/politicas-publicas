@@ -75,6 +75,16 @@ _DEJAVU_DIR = "/usr/share/fonts/truetype/dejavu"
 pdfmetrics.registerFont(TTFont("DejaVuSans",      os.path.join(_DEJAVU_DIR, "DejaVuSans.ttf")))
 pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", os.path.join(_DEJAVU_DIR, "DejaVuSans-Bold.ttf")))
 
+# Paragraph style for table cells that need word-wrap (plain strings don't wrap in ReportLab tables)
+_TC_CELL_WRAP = ParagraphStyle(
+    'TblCellWrap', fontName='DejaVuSans', fontSize=8.5, leading=11,
+    alignment=TA_LEFT, wordWrap='LTR',
+)
+_TC_HDR_WRAP = ParagraphStyle(
+    'TblHdrWrap', fontName='DejaVuSans-Bold', fontSize=9, leading=11,
+    alignment=TA_CENTER, textColor=colors.white, wordWrap='LTR',
+)
+
 
 def eq_image(latex_str, fontsize=11, color="#111111"):
     """Render a LaTeX math string via matplotlib mathtext and return a ReportLab Image."""
@@ -204,11 +214,11 @@ def on_later_pages(canvas, doc):
     canvas.saveState()
     canvas.setFont("DejaVuSans", 8)
     canvas.setFillColor(colors.HexColor("#888888"))
-    # Running header
-    header = "Martins Ramos de Oliveira, C. — Parliamentary Representation, Earmarked Transfers & Inequality"
-    canvas.drawString(MARGIN, PAGE_H - MARGIN + 0.4*cm, header)
+    # Running header — keep both sides short to avoid overlap
+    canvas.drawString(MARGIN, PAGE_H - MARGIN + 0.4*cm,
+                      "Martins Ramos de Oliveira, C.")
     canvas.drawRightString(PAGE_W - MARGIN, PAGE_H - MARGIN + 0.4*cm,
-                           f"arXiv Working Paper · May 2026")
+                           "Representation, Transfers & Inequality in Brazil · 2026")
     canvas.line(MARGIN, PAGE_H - MARGIN + 0.25*cm,
                 PAGE_W - MARGIN, PAGE_H - MARGIN + 0.25*cm)
     # Footer
@@ -680,19 +690,24 @@ def build_story(S):
             _fmt_civ(key, "n",        "{:.0f}"),
         ]
 
+    # wc() wraps a spec-column label in a Paragraph so it word-wraps inside the cell
+    def wc(txt):
+        return Paragraph(txt, _TC_CELL_WRAP)
+
     tbl5_data = [
         ["Specification", "FS F-stat", "RF coef.", "RF p-val.", "Wald IV", "N"],
-        _row5("Baseline (no hist. control)",             "baseline"),
-        _row5("+  Gini 1991 (ADH / Censo Demográfico)",  "cond_gini91"),
-        _row5("+  log PIB per capita 1991",               "cond_pib91"),
-        _row5("+  Gini baseline (≈2012)",                 "cond_gini0"),
-        _row5("+  Gini 1991 + log PIB 1991 (joint)",      "cond_full"),
+        _row5(wc("Baseline (no hist. control)"),                      "baseline"),
+        _row5(wc("+  Gini 1991 (ADH / Censo Demográfico)"),           "cond_gini91"),
+        _row5(wc("+  log PIB per capita 1991"),                        "cond_pib91"),
+        _row5(wc("+  Gini baseline (\u22482012)"),                     "cond_gini0"),
+        _row5(wc("+  Gini 1991 + log PIB 1991 (joint)"),               "cond_full"),
     ]
     story += [
         sp(4),
-        make_table(tbl5_data, [avail_w*0.32, avail_w*0.12, avail_w*0.13,
-                                avail_w*0.12, avail_w*0.13, avail_w*0.08],
-                   styles_dict=[("FONTSIZE", (0,0), (-1,-1), 8.5)]),
+        make_table(tbl5_data,
+                   [avail_w*0.42, avail_w*0.10, avail_w*0.12, avail_w*0.10, avail_w*0.12, avail_w*0.08],
+                   styles_dict=[("FONTSIZE", (0,0), (-1,-1), 8.5),
+                                ("ALIGN",    (0,1), (0,-1),  "LEFT")]),
         Paragraph(
             "Table 5. IV conditional sensitivity: distorcao_cadeiras → Gini with "
             "progressive historical controls. Gini 1991 from Atlas do Desenvolvimento Humano "
