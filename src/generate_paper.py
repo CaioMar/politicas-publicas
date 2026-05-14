@@ -371,7 +371,7 @@ def build_story(S):
           "negative effects in some contexts. Baião and Couto (2017) reconcile this "
           "heterogeneity: only amendments executed as transfers to municipalities generate "
           "votes, and only when the mayor is a legislative ally. This result is directly "
-          "relevant to the <i>scale mismatch hypothesis</i> developed in our Section 7.2 — "
+          "relevant to the <i>scale mismatch hypothesis</i> developed in our Section 8.2 — "
           "the mechanism operates at the municipal level, making state-level Gini an "
           "inappropriate outcome measure."),
         ssec("2.3  Double Machine Learning and IV identification"),
@@ -396,8 +396,8 @@ def build_story(S):
 
     # ── 3. INSTITUTIONAL BACKGROUND ────────────────────────────────────────────
     story += [
-        sec("2.  Institutional Background"),
-        ssec("2.1  Chamber seat allocation"),
+        sec("3.  Institutional Background"),
+        ssec("3.1  Chamber seat allocation"),
         p("Brazil's federal constitution distributes the 513 seats of the Chamber of Deputies "
           "among 27 federative units (26 states + Federal District) proportional to population, "
           "subject to a <b>minimum of 8</b> and a <b>maximum of 70</b> seats per unit. "
@@ -408,7 +408,7 @@ def build_story(S):
           "This generates a natural instrument: within-state variation in effective "
           "representation relative to population is largely determined by constitutional "
           "arithmetic rather than unobservable state characteristics."),
-        ssec("2.2  Parliamentary amendments (emendas parlamentares)"),
+        ssec("3.2  Parliamentary amendments (emendas parlamentares)"),
         p("Individual deputies propose line-item amendments to the annual federal budget, "
           "earmarking funds for projects in their home states. Before EC 86/2015, the "
           "executive could impound these appropriations; the amendment made 1.2% of net "
@@ -419,7 +419,7 @@ def build_story(S):
 
     # ── 3. DATA ────────────────────────────────────────────────────────────────
     story += [
-        sec("3.  Data"),
+        sec("4.  Data"),
         p("We combine four data sources into an unbalanced state-year panel spanning "
           "2012–2023 (N = 243 after exclusions for lagged variables):"),
     ]
@@ -450,8 +450,8 @@ def build_story(S):
 
     # ── 4. CAUSAL FRAMEWORK ────────────────────────────────────────────────────
     story += [
-        sec("4.  Causal Framework"),
-        ssec("4.1  Directed Acyclic Graph"),
+        sec("5.  Causal Framework"),
+        ssec("5.1  Directed Acyclic Graph"),
         p("Our causal assumptions are encoded in the DAG in Figure 1. "
           "The constitutional instrument Z (seat limits) affects treatment T "
           "(relative representation) but has no direct path to the mediator M "
@@ -465,7 +465,7 @@ def build_story(S):
             "T  →  Y  (direct, bypassing M)             [path c′]\n"
             "Total effect: c  =  c′  +  a·b"
         ),
-        ssec("4.2  Identification strategy and instrumental validity"),
+        ssec("5.2  Identification strategy and instrumental validity"),
         p("The IV exclusion restriction requires that seat limits affect the Gini only "
           "through representation and amendments. For this restriction to hold, there must "
           "be no direct path from the constitutional seat allocation to contemporary "
@@ -486,7 +486,7 @@ def build_story(S):
           "which proxies for the inertial persistence of inequality. "
           "Conditioning on these variables closes the historical backdoor, "
           "yielding a <i>conditionally</i> valid instrument. "
-          "The sensitivity results are reported in Table 5 (Section 6.7)."),
+          "The sensitivity results are reported in Table 5 (Section 7.7)."),
         p("<b>Historical control: Gini 1991 from the Demographic Census.</b> "
           "The Atlas do Desenvolvimento Humano (ADH), published jointly by PNUD, IPEA and FJP "
           "and based on the IBGE Censo Demogr\u00e1fico 1991, provides Gini coefficients by "
@@ -510,18 +510,18 @@ def build_story(S):
           "about future amendment volumes or Gini trajectories. "
           "The historical confounding threat (Desig<sub>1988</sub> → Cadeiras) "
           "is plausible but addressable: conditioning on Gini<sub>1991</sub> and "
-          "log PIB<sub>1991</sub> closes the main backdoor, and Table 5 (Section 6.7) "
+          "log PIB<sub>1991</sub> closes the main backdoor, and Table 5 (Section 7.7) "
           "shows the reduced-form coefficient is stable across all five conditioning "
           "specifications (range: −0.000290 to +0.000076; all p > 0.20). "
           "We conclude the instrument is <i>conditionally</i> valid; the residual "
           "threat — that the 1991 Gini does not fully proxy for 1988 inequality — "
-          "is acknowledged as a limitation in Section 8."),
+          "is acknowledged as a limitation in Section 9."),
     ]
 
     # ── 5. METHODOLOGY ─────────────────────────────────────────────────────────
     story += [
-        sec("5.  Empirical Methodology"),
-        ssec("5.1  Causal mediation (Imai, Keele, and Tingley 2010)"),
+        sec("6.  Empirical Methodology"),
+        ssec("6.1  Causal mediation (Imai, Keele, and Tingley 2010)"),
         p("We decompose the total effect following the potential-outcomes framework of "
           "Imai, Keele, and Tingley (2010), which formalises identification conditions "
           "for natural direct and indirect effects under sequential ignorability. "
@@ -534,23 +534,23 @@ def build_story(S):
         sp(2),
         p("Controls X include log GDP per capita, lagged Gini, and region fixed effects. "
           "Bootstrap CIs for the indirect effect (NIE = a·b) use 5,000 resamples."),
-        ssec("5.2  Distributed-lag impulse response"),
+        ssec("6.2  Distributed-lag impulse response"),
         p("To allow for multi-year accumulation we estimate:"),
         eq_image(r"\mathrm{Gini}_{it} = \sum_{k=0}^{3} \beta_k \cdot \log(\mathrm{emendas})_{i,t-k} + \gamma X_{it} + \delta_i + \lambda_t + \varepsilon_{it}"),
         p("with state (δ<sub>i</sub>) and year (λ<sub>t</sub>) fixed effects. N = 189 after creating lags. "
           "The cumulative impulse-response function (IRF) is Σ β<sub>k</sub>."),
-        ssec("5.3  Difference-in-Differences (EC 86/2015)"),
+        ssec("6.3  Difference-in-Differences (EC 86/2015)"),
         p("Constitutional Amendment 86/2015 mandated execution of individually presented "
           "amendments starting in 2016. We define as treated states those with low "
           "pre-2016 execution rates (more affected by the reform) and estimate an event "
           "study with year indicators relative to 2015. N = 243. Baseline year = 2015."),
-        ssec("5.4  Regression Discontinuity Design"),
+        ssec("6.4  Regression Discontinuity Design"),
         p("We exploit the 8-seat constitutional minimum as a cutoff in an RDD, using "
           "the number of allocated seats as the running variable. The sample is restricted "
           "to states within 14 seats of the threshold (N = 15). Local linear regressions "
           "with a triangular kernel estimate the discontinuity in both amendments and Gini "
           "at the cutoff."),
-        ssec("5.5  Double Machine Learning"),
+        ssec("6.5  Double Machine Learning"),
         p("Following Chernozhukov et al. (2018), we estimate the partially linear model:"),
         eq_image(r"\mathrm{Gini}_{it} = \theta \cdot T_{it} + g(X_{it}) + \varepsilon_{it}"),
         p("via 5-fold cross-fitting with LassoCV to partial out the confounders g(X<sub>it</sub>). "
@@ -560,8 +560,8 @@ def build_story(S):
 
     # ── 6. RESULTS ─────────────────────────────────────────────────────────────
     story += [
-        sec("6.  Results"),
-        ssec("6.1  First-stage and mediation decomposition"),
+        sec("7.  Results"),
+        ssec("7.1  First-stage and mediation decomposition"),
         p("Table 2 presents the Baron &amp; Kenny path coefficients. The first stage "
           "is strong and precisely estimated (a = +0.458, p &lt; 0.001). The M → Y path "
           "is borderline significant (b = −0.0068, p = 0.054), consistent with a weak "
@@ -590,7 +590,7 @@ def build_story(S):
             S["caption"]
         ),
         sp(6),
-        ssec("6.2  Distributed-lag impulse response"),
+        ssec("7.2  Distributed-lag impulse response"),
         p("The distributed-lag model reveals a consistent negative pattern: lag-0 "
           "coefficient β<sub>0</sub> = −0.0119, accumulating to a cumulative IRF of −0.024 at lag 2, "
           "before partly recovering to −0.022 at lag 3. No individual lag coefficient is "
@@ -615,26 +615,26 @@ def build_story(S):
             S["caption"]
         ),
         sp(6),
-        ssec("6.3  DiD event study (EC 86/2015)"),
+        ssec("7.3  DiD event study (EC 86/2015)"),
         p("The event study produces no evidence of pre-trends or post-reform breaks. "
           "All event-time coefficients are small and statistically indistinguishable "
           "from zero at the 5% level (N = 243, baseline 2015). This null result is "
           "consistent with the amendment reform affecting federal execution rather than "
           "state-level Gini outcomes at the annual frequency."),
-        ssec("6.4  RDD at the 8-seat threshold"),
+        ssec("7.4  RDD at the 8-seat threshold"),
         p("Within the bandwidth of ≤14 seats from the constitutional minimum, we find "
           "no significant discontinuity. At the cutoff, the estimated jumps are: "
           "amendments per capita = −R$ 5.6m/100k (p = 0.55) and Gini = −0.017 (p = 0.69). "
           "Identification is compromised by a bunching problem: 11 of 27 states sit "
           "exactly at the 8-seat minimum, creating a density mass that violates the "
           "RDD continuity assumption."),
-        ssec("6.5  Double Machine Learning"),
+        ssec("7.5  Double Machine Learning"),
         p("The DML estimate θ<super>^</super> = +0.00103 (95% CI: [−0.004, +0.006], p = 0.67) "
           "corroborates the null finding. Notably, naïve OLS yielded θ<super>^,OLS</super> = −0.010 "
           "(p = 0.036), an artefact of the correlation between small states "
           "(over-represented constitutionally) and high inequality — a spurious "
           "negative coefficient that DML's non-parametric deconfounding eliminates."),
-        ssec("6.6  Fiscal mediation chain (SICONFI)"),
+        ssec("7.6  Fiscal mediation chain (SICONFI)"),
         p("Using SICONFI liquidated expenditure data for 27 UFs × 2018–2023 (N = 180), "
           "we test the secondary chain: amendments → sectoral spending → Gini. "
           "Amendments do not significantly predict health spending (β = −0.012, p = 0.70) "
@@ -671,7 +671,7 @@ def build_story(S):
             S["caption"]
         ),
         sp(6),
-        ssec("6.7  Conditional IV — sensitivity to historical confounding"),
+        ssec("7.7  Conditional IV — sensitivity to historical confounding"),
         p("Table 5 reports the IV sensitivity analysis. We compare the baseline "
           "reduced-form coefficient (distorcao_cadeiras → Gini) against specifications "
           "that add one or both historical proxies as controls. "
@@ -721,8 +721,8 @@ def build_story(S):
 
     # ── 7. DISCUSSION ──────────────────────────────────────────────────────────
     story += [
-        sec("7.  Discussion"),
-        ssec("7.1  Partial suppression mediation"),
+        sec("8.  Discussion"),
+        ssec("8.1  Partial suppression mediation"),
         p("The mediation decomposition reveals a partial-suppression pattern. "
           "The indirect effect (NIE = −0.0031) and the direct effect (NDE = +0.0058) "
           "have opposite signs, largely cancelling out in the total. "
@@ -734,7 +734,7 @@ def build_story(S):
           "over-represented states with concentrated political power may be better "
           "at blocking redistributive general-government transfers, as the amendment "
           "system crowds out formula-based transfers."),
-        ssec("7.2  Scale mismatch hypothesis"),
+        ssec("8.2  Scale mismatch hypothesis"),
         p("The most substantively important caveat is scale. Parliamentary amendments "
           "target municipalities — roads, health posts, schools — while our Gini is "
           "measured at the state level. If half of a state's amendments flow to its "
@@ -745,7 +745,7 @@ def build_story(S):
           "This interpretation is consistent with Baião &amp; Couto (2017), who show that "
           "the politically relevant unit of the amendment mechanism is the municipality, "
           "not the state."),
-        ssec("7.3  The education channel"),
+        ssec("8.3  The education channel"),
         p("The only significant causal link we identify — education expenditure → Gini "
           "(β = −0.025) — is consistent with a large literature connecting schooling "
           "and wage compression (Goldin &amp; Katz, 2008; Lustig et al., 2013). "
@@ -755,8 +755,8 @@ def build_story(S):
           "This suggests that constitutional earmarks for education (as in the "
           "FUNDEB mechanism) may be more effective redistributive instruments "
           "than discretionary parliamentary amendments."),
-        ssec("7.4  Instrumental validity: the historical confounding threat"),
-        p("As identified in Section 4.2, the exclusion restriction faces a potential "
+        ssec("8.4  Instrumental validity: the historical confounding threat"),
+        p("As identified in Section 5.2, the exclusion restriction faces a potential "
           "violation: if state inequality in 1988 partly determined the constitutional "
           "seat allocation, then the instrument carries a historical backdoor. "
           "Our conditional IV analysis (Table 5) uses log PIB per capita in 1991 "
@@ -779,7 +779,7 @@ def build_story(S):
 
     # ── 8. CONCLUSION ─────────────────────────────────────────────────────────
     story += [
-        sec("8.  Conclusion"),
+        sec("9.  Conclusion"),
         p("Using five causal identification strategies — IV mediation analysis, "
           "distributed lags, Difference-in-Differences, RDD, and Double Machine Learning "
           "— we find no robust evidence that parliamentary over-representation reduces "
@@ -813,7 +813,13 @@ def build_story(S):
         hr(), sp(4),
         sec("References"),
         Paragraph(
-            "Baron, R. M., &amp; Kenny, D. A. (1986). The moderator–mediator variable "
+            "Ames, B. (1995). Electoral rules, constituency pressures, and pork barrel: "
+            "Bases of voting in the Brazilian Congress. "
+            "<i>Journal of Politics</i>, 57(2), 324\u2013343.",
+            S["ref"]
+        ),
+        Paragraph(
+            "Baron, R. M., &amp; Kenny, D. A. (1986). The moderator\u2013mediator variable "
             "distinction in social psychological research: Conceptual, strategic, and "
             "statistical considerations. <i>Journal of Personality and Social Psychology</i>, "
             "51(6), 1173–1182. https://doi.org/10.1037/0022-3514.51.6.1173",
@@ -871,6 +877,12 @@ def build_story(S):
             "What's trending in difference-in-differences? A synthesis of the recent "
             "econometrics literature. <i>Journal of Econometrics</i>, 235(2), 2218–2244. "
             "https://doi.org/10.1016/j.jeconom.2023.03.008",
+            S["ref"]
+        ),
+        Paragraph(
+            "Samuels, D. (2002). Pork barreling is not credit claiming or advertising: "
+            "Campaign finance and the sources of the personal vote in Brazil. "
+            "<i>Journal of Politics</i>, 64(3), 845\u2013863.",
             S["ref"]
         ),
         Paragraph(
