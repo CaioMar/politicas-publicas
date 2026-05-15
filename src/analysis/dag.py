@@ -59,6 +59,8 @@ digraph {
     regiao -> gini;
 
     gini_lag1 -> gini;
+    gini_lag1 -> representacao_relativa;
+    gini_lag1 -> emendas_per_cap;
 
     alinhamento_gov -> emendas_per_cap;
     alinhamento_gov -> gini;
@@ -85,6 +87,8 @@ def build_nx_dag() -> nx.DiGraph:
         ("regiao", "representacao_relativa"),
         ("regiao", "gini"),
         ("gini_lag1", "gini"),
+        ("gini_lag1", "representacao_relativa"),
+        ("gini_lag1", "emendas_per_cap"),
         ("alinhamento_gov", "emendas_per_cap"),
         ("alinhamento_gov", "gini"),
         ("populacao", "representacao_relativa"),
@@ -121,6 +125,24 @@ def plot_dag(ax=None, figsize=(14, 9)) -> plt.Figure:
 
     roles = nx.get_node_attributes(G, "role")
     node_colors = [COLOR_MAP.get(roles.get(n, "confounder"), "#9E9E9E") for n in G.nodes()]
+    labels = {
+        "distorcao_cadeiras": "Z",
+        "representacao_relativa": "T",
+        "emendas_per_cap": "M",
+        "gini": "Y",
+        "log_pib_per_cap": "GDP",
+        "regiao": "Region",
+        "gini_lag1": "Lagged\nGini",
+        "alinhamento_gov": "Gov.\nAlign.",
+        "populacao": "Population",
+    }
+    label_colors = {
+        "instrument": "white",
+        "treatment": "white",
+        "mediator": "white",
+        "outcome": "white",
+        "confounder": "#1f2937",
+    }
 
     pos = {
         "distorcao_cadeiras":      (-2.5, 0),
@@ -139,30 +161,42 @@ def plot_dag(ax=None, figsize=(14, 9)) -> plt.Figure:
     else:
         fig = ax.get_figure()
 
-    nx.draw_networkx(
+    nx.draw_networkx_nodes(
         G, pos=pos, ax=ax,
         node_color=node_colors,
-        node_size=2500,
-        font_size=9,
-        font_color="white",
-        font_weight="bold",
+        node_size=2600,
+        linewidths=0.8,
+        edgecolors="#ffffff",
+    )
+    nx.draw_networkx_edges(
+        G, pos=pos, ax=ax,
         edge_color="#555555",
         arrows=True,
         arrowsize=20,
+        width=0.8,
         connectionstyle="arc3,rad=0.1",
     )
+    for node, (x, y) in pos.items():
+        role = roles.get(node, "confounder")
+        ax.text(
+            x, y, labels.get(node, node),
+            fontsize=9,
+            fontweight="bold",
+            ha="center", va="center",
+            color=label_colors.get(role, "#1f2937"),
+        )
 
     # Legenda
     from matplotlib.patches import Patch
     legend_elements = [
-        Patch(color="#4CAF50", label="Instrumento (Z)"),
-        Patch(color="#2196F3", label="Tratamento (T)"),
-        Patch(color="#FF9800", label="Mediador (M)"),
+        Patch(color="#4CAF50", label="Instrument (Z)"),
+        Patch(color="#2196F3", label="Treatment (T)"),
+        Patch(color="#FF9800", label="Mediator (M)"),
         Patch(color="#F44336", label="Outcome (Y)"),
-        Patch(color="#9E9E9E", label="Confundidor (X)"),
+        Patch(color="#9E9E9E", label="Confounder (X)"),
     ]
     ax.legend(handles=legend_elements, loc="upper left", fontsize=9)
-    ax.set_title("DAG Causal: Representação → Emendas → Desigualdade", fontsize=13)
+    ax.set_title("Causal DAG: Representation → Amendments → Inequality", fontsize=13)
     ax.axis("off")
     return fig
 
