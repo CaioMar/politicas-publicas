@@ -331,6 +331,7 @@ def build_story(S):
           "higher per-capita representation tend to be smaller, poorer, and concentrated in "
           "the North and Northeast — regions with historically high inequality. Naïve OLS "
           "therefore mixes distributional selection with any genuine redistributive effect."),
+                p("While regional redistribution is not a stated objective of the parliamentary amendment system, an implicit redistributive expectation underlies much of the policy debate: constitutionally over-represented states tend to be smaller and poorer, and it is frequently assumed that their disproportionate legislative weight should translate into fiscal advantage and, ultimately, lower inequality relative to wealthier, under-represented states such as São Paulo. This paper tests that implicit premise empirically."),
         p("We address this identification problem through a multi-pronged strategy. "
           "Our instrument exploits the constitutional rule that each state receives between "
           "8 and 70 seats regardless of population, creating exogenous variation in per-capita "
@@ -738,19 +739,11 @@ def build_story(S):
           "(infrastructure, visible public works) rather than human capital investment. "
           "The positive direct effect may also reflect legislative bargaining: "
           "over-represented states with concentrated political power may be better "
-          "at blocking redistributive general-government transfers, as the amendment "
-          "system crowds out formula-based transfers."),
+                    "at blocking redistributive general-government transfers, as the amendment "
+                    "system crowds out formula-based transfers. "
+                    "This pattern also raises a broader institutional question: combining malapportioned representation with individual discretionary spending power produces a system where neither the federative justification — that smaller states deserve stronger voice — nor the redistributive expectation — that stronger voice should yield more equitable outcomes — is systematically fulfilled. The positive direct effect (NDE = +0.0058) suggests that over-representation may actually constrain formula-based equalisation transfers, replacing predictable redistributive mechanisms with discretionary ones subject to electoral capture."),
         ssec("8.2  Scale mismatch hypothesis"),
-        p("The most substantively important caveat is scale. Parliamentary amendments "
-          "target municipalities — roads, health posts, schools — while our Gini is "
-          "measured at the state level. If half of a state's amendments flow to its "
-          "poorest municipalities, the state Gini may not move even if local inequality "
-          "falls sharply. This mismatch in measurement scale creates an attenuation "
-          "bias that could account for the null findings. Future work should replicate "
-          "this analysis at the municipal level using the IBGE CadÚnico microdata. "
-          "This interpretation is consistent with Baião &amp; Couto (2017), who show that "
-          "the politically relevant unit of the amendment mechanism is the municipality, "
-          "not the state."),
+                p("The scale mismatch, however, is not merely a measurement limitation — it reflects a structural misalignment in the amendment mechanism itself. Deputies are elected at the state level but allocate resources following municipal electoral logic, directing funds toward municipalities that constitute their voter base rather than toward the poorest localities within their state. Even if amendments reduce inequality at the municipal level, the selection of beneficiary municipalities follows electoral rather than redistributive criteria, suggesting that any distributional effect — if it exists — is unlikely to be systematic or pro-poor. This interpretation is consistent with Baião and Couto (2017), who show that amendments generate electoral returns only when directed to allied mayors, confirming that the allocation unit is the political coalition, not the redistributive need."),
         ssec("8.3  The education channel"),
         p("The only significant causal link we identify — education expenditure → Gini "
           "(β = −0.025) — is consistent with a large literature connecting schooling "
@@ -799,7 +792,9 @@ def build_story(S):
           "diffuse and politically motivated to generate detectable aggregate inequality "
           "reduction. The significant education–Gini link provides a constructive hint: "
           "formula-based transfers with a strong human capital component appear more "
-          "promising as redistribution vehicles than discretionary earmarks."),
+                    "promising as redistribution vehicles than discretionary earmarks. "
+                    "Our findings suggest a structural tension in the amendment system: if redistribution operates — if at all — at the municipal level through electoral channels, it is unlikely to be systematically pro-poor. Formula-based transfers with explicit redistributive criteria, such as FUNDEB in education, appear better suited to reduce inequality than discretionary earmarks whose allocation follows political rather than distributive logic."),
+                p("Our results also speak to the broader debate on electoral reform. The evidence suggests that the redistributive failure documented here is unlikely to be resolved by changes to the voting system alone — whether proportional or district-based, any arrangement that combines discretionary allocation with electoral incentives will tend to direct resources toward politically relevant constituencies rather than toward redistributive need. What the data point to instead is the importance of instrument design: formula-based transfers with explicit redistributive criteria — such as FUNDEB and the SUS equalisation mechanism — operate independently of electoral logic and appear more effective at activating the education–inequality channel we identify. The policy implication is therefore not who represents, but how resources are allocated."),
         p("Three limitations bound our conclusions. First, the short panel (2012–2023) "
           "limits the power to detect slow-moving distributional effects. "
           "Second, a scale mismatch exists between municipal-targeted amendments and "
