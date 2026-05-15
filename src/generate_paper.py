@@ -112,6 +112,27 @@ def eq_image(latex_str, fontsize=11, color="#111111"):
     img.hAlign = "LEFT"
     return img
 
+
+def dag_image():
+    """Render the causal DAG figure into a ReportLab Image."""
+    from analysis.dag import plot_dag
+
+    fig = plot_dag(figsize=(12, 6))
+    buf = io.BytesIO()
+    fig.tight_layout()
+    fig.savefig(buf, format="png", bbox_inches="tight",
+                pad_inches=0.08, dpi=180, transparent=True)
+    plt.close(fig)
+    buf.seek(0)
+
+    img = Image(buf)
+    max_w = 14 * cm
+    scale = min(1.0, max_w / img.imageWidth)
+    img.drawWidth = img.imageWidth * scale
+    img.drawHeight = img.imageHeight * scale
+    img.hAlign = "CENTER"
+    return img
+
 # ─────────────────────────────────────────────────────────────────────────────
 # OUTPUT PATH
 # ─────────────────────────────────────────────────────────────────────────────
@@ -465,13 +486,15 @@ def build_story(S):
           "(amendments per capita) or outcome Y (Gini) other than through T. "
           "Confounders U (GDP per capita, region fixed effects, lagged Gini) "
           "affect T, M, and Y but are blocked by conditioning."),
-        p_small(
-            "Z (constitutional limits 8–70 seats)  →  T (relative representation)\n"
-            "T  →  M (log amendments per 100k pop.)     [path a]\n"
-            "M  →  Y (Gini)                              [path b]\n"
-            "T  →  Y  (direct, bypassing M)             [path c′]\n"
-            "Total effect: c  =  c′  +  a·b"
-        ),
+                sp(2),
+                dag_image(),
+                Paragraph(
+                        "Figure 1. Directed acyclic graph for the causal framework. "
+                        "The graph encodes the instrument Z, treatment T, mediator M, outcome Y, "
+                        "and observed confounders U.",
+                        S["caption"]
+                ),
+                sp(2),
         ssec("5.2  Identification strategy and instrumental validity"),
         p("The IV exclusion restriction requires that seat limits affect the Gini only "
           "through representation and amendments. For this restriction to hold, there must "
